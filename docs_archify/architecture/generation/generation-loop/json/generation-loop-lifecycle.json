@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "自回归生成循环状态机",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [900, 650]
+  },
+  "lanes": [
+    { "id": "main", "label": "生成主循环" },
+    { "id": "proc", "label": "前向与 Logits" },
+    { "id": "terminal", "label": "终止状态" }
+  ],
+  "states": [
+    { "id": "init", "type": "start", "label": "配置准备", "sublabel": "GenConfig 合并", "lane": "main", "col": 0 },
+    { "id": "prefill", "type": "active", "label": "Prefill", "sublabel": "首向前向", "lane": "main", "col": 1 },
+    { "id": "fwd", "type": "active", "label": "单 token 前向", "sublabel": "利用 KV Cache", "lane": "proc", "col": 0 },
+    { "id": "logits", "type": "active", "label": "LogitsProcessor", "sublabel": "温度/top-k/top-p", "lane": "proc", "col": 2 },
+    { "id": "check", "type": "decision", "label": "选 token + 停止", "sublabel": "argmax/multinomial", "lane": "main", "col": 2 },
+    { "id": "done", "type": "success", "label": "生成完成", "sublabel": "返回 sequences", "lane": "terminal", "col": 1 }
+  ],
+  "transitions": [
+    { "from": "init", "to": "prefill" },
+    { "from": "prefill", "to": "fwd", "fromSide": "bottom", "toSide": "top" },
+    { "from": "fwd", "to": "logits" },
+    { "from": "logits", "to": "check", "fromSide": "top", "toSide": "bottom" },
+    { "from": "check", "to": "fwd", "variant": "dashed" },
+    { "from": "check", "to": "done", "variant": "emphasis" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "循环语义", "items": [
+      "每步：前向→logits 处理→选 token→停止检查",
+      "未完成序列用 pad_token_id 填充",
+      "DeferredStopCheck 可减少 GPU 同步点"
+    ]}
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "文本水印注入与检测架构",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "components": [
+    { "id": "config", "type": "database", "label": "WatermarkConfig", "sublabel": "γ/bias/scheme", "pos": [40, 160], "size": [130, 56] },
+    { "id": "processor", "type": "backend", "label": "WatermarkProcessor", "sublabel": "logits_process.py:2389", "pos": [260, 160], "size": [140, 56], "tag": "注入" },
+    { "id": "hash", "type": "backend", "label": "哈希种子", "sublabel": "set_seed", "pos": [260, 40], "size": [130, 56] },
+    { "id": "greenlist", "type": "backend", "label": "绿名单生成", "sublabel": "randperm", "pos": [480, 160], "size": [130, 56] },
+    { "id": "logits", "type": "external", "label": "模型 logits", "sublabel": "原始分布", "pos": [700, 160], "size": [120, 56] },
+    { "id": "detector", "type": "backend", "label": "WatermarkDetector", "sublabel": "watermarking.py:71", "pos": [480, 340], "size": [140, 56], "tag": "检测" },
+    { "id": "zscore", "type": "backend", "label": "z-score 检验", "sublabel": "统计判定", "pos": [700, 340], "size": [120, 56] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "水印注入（生成时）", "wraps": ["config", "processor", "hash", "greenlist", "logits"] },
+    { "kind": "region", "label": "水印检测（离线）", "wraps": ["detector", "zscore"] }
+  ],
+  "connections": [
+    { "id": "c-p", "from": "config", "to": "processor", "fromSide": "right", "toSide": "left" },
+    { "id": "p-h", "from": "processor", "to": "hash", "fromSide": "top", "toSide": "bottom" },
+    { "id": "p-g", "from": "processor", "to": "greenlist", "fromSide": "right", "toSide": "left" },
+    { "id": "g-l", "from": "greenlist", "to": "logits", "label": "+bias", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "p-d", "from": "processor", "to": "detector", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "d-z", "from": "detector", "to": "zscore", "fromSide": "right", "toSide": "left" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "注入原理", "items": [
+      "哈希前 token → 种子 → 打乱词表",
+      "前 γ*V 个 token 为绿名单",
+      "绿名单 logits += bias"
+    ]},
+    { "dot": "cyan", "title": "检测原理", "items": [
+      "逐 n-gram 统计绿名单命中",
+      "z = (命中-γN)/sqrt(Nγ(1-γ))",
+      "z > 3.0 判定有水印"
+    ]}
+  ]
+}

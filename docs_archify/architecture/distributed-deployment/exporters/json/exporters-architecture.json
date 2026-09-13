@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": { "title": "模型导出后端架构", "quality_profile": "showcase", "locale": "zh-CN", "viewBox": [1200, 400] },
+  "components": [
+    { "id": "user", "type": "frontend", "label": "用户", "sublabel": "export(model)", "pos": [40, 160], "size": [130, 60] },
+    { "id": "auto", "type": "backend", "label": "AutoHfExporter", "sublabel": "auto.py", "pos": [230, 160], "size": [150, 60] },
+    { "id": "dynamo", "type": "backend", "label": "DynamoExporter", "sublabel": "基类", "pos": [450, 160], "size": [140, 60] },
+    { "id": "onnx", "type": "backend", "label": "OnnxExporter", "sublabel": "ONNX", "pos": [660, 100], "size": [140, 60] },
+    { "id": "et", "type": "backend", "label": "ExecutorchExporter", "sublabel": "移动端", "pos": [660, 220], "size": [140, 60] },
+    { "id": "torch", "type": "external", "label": "PyTorch Export", "sublabel": "外部依赖", "pos": [880, 160], "size": [170, 60] }
+  ],
+  "connections": [
+    { "id": "u-a", "from": "user", "to": "auto" },
+    { "id": "a-d", "from": "auto", "to": "dynamo" },
+    { "id": "d-onnx", "from": "dynamo", "to": "onnx" },
+    { "id": "d-et", "from": "dynamo", "to": "et" },
+    { "id": "onnx-t", "from": "onnx", "to": "torch" },
+    { "id": "et-t", "from": "et", "to": "torch" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "导出要点", "items": [
+      "统一 DynamoExporter 基类封装 torch.export",
+      "ONNX 导出含算子补丁（rms_norm/cummax 等）",
+      "Executorch 面向移动端/边缘端"
+    ]}
+  ]
+}

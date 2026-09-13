@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "HuggingFace Transformers 系统数据流图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [
+      1200,
+      600
+    ]
+  },
+  "stages": [
+    {
+      "label": "输入"
+    },
+    {
+      "label": "预处理"
+    },
+    {
+      "label": "模型推理"
+    },
+    {
+      "label": "生成输出"
+    },
+    {
+      "label": "持久化/Hub"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "rawtext",
+      "type": "external",
+      "label": "原始数据",
+      "sublabel": "文本/图像/音频",
+      "stage": 0,
+      "row": 0
+    },
+    {
+      "id": "tokenizer",
+      "type": "backend",
+      "label": "Tokenizer",
+      "sublabel": "分词/多模态处理",
+      "stage": 1,
+      "row": 0
+    },
+    {
+      "id": "tensors",
+      "type": "database",
+      "label": "张量批次",
+      "sublabel": "input_ids/mask",
+      "stage": 1,
+      "row": 1
+    },
+    {
+      "id": "modelcore",
+      "type": "database",
+      "label": "模型前向",
+      "sublabel": "PreTrainedModel",
+      "stage": 2,
+      "row": 0
+    },
+    {
+      "id": "logits",
+      "type": "database",
+      "label": "logits",
+      "sublabel": "hidden/KV Cache",
+      "stage": 2,
+      "row": 1
+    },
+    {
+      "id": "genloop",
+      "type": "backend",
+      "label": "生成循环",
+      "sublabel": "GenerationMixin",
+      "stage": 3,
+      "row": 0
+    },
+    {
+      "id": "finaltext",
+      "type": "external",
+      "label": "最终输出",
+      "sublabel": "可读文本/结果",
+      "stage": 3,
+      "row": 1
+    },
+    {
+      "id": "checkpoint",
+      "type": "database",
+      "label": "checkpoint",
+      "sublabel": "safetensors权重",
+      "stage": 4,
+      "row": 0
+    },
+    {
+      "id": "hfhub",
+      "type": "external",
+      "label": "HF Hub",
+      "sublabel": "远端模型仓库",
+      "stage": 4,
+      "row": 1
+    }
+  ],
+  "flows": [
+    {
+      "from": "rawtext",
+      "to": "tokenizer",
+      "label": "encode",
+      "variant": "emphasis",
+      "route": "straight"
+    },
+    {
+      "from": "tokenizer",
+      "to": "tensors",
+      "variant": "emphasis",
+      "route": "straight",
+      "label": "张量",
+      "labelDx": 80,
+      "labelDy": 20
+    },
+    {
+      "from": "tensors",
+      "to": "modelcore",
+      "label": "forward输入",
+      "variant": "emphasis",
+      "route": "straight"
+    },
+    {
+      "from": "modelcore",
+      "to": "logits",
+      "variant": "emphasis",
+      "route": "straight",
+      "label": "hidden",
+      "labelDx": 100,
+      "labelDy": 0
+    },
+    {
+      "from": "logits",
+      "to": "genloop",
+      "label": "采样/贪心",
+      "variant": "default",
+      "route": "straight"
+    },
+    {
+      "from": "genloop",
+      "to": "modelcore",
+      "label": "KV Cache复用",
+      "variant": "dashed",
+      "route": "bottom-channel"
+    },
+    {
+      "from": "genloop",
+      "to": "finaltext",
+      "variant": "emphasis",
+      "route": "straight",
+      "label": "解码",
+      "labelDx": 80,
+      "labelDy": 20
+    },
+    {
+      "from": "modelcore",
+      "to": "checkpoint",
+      "label": "save/load",
+      "variant": "default",
+      "route": "bottom-channel"
+    },
+    {
+      "from": "checkpoint",
+      "to": "hfhub",
+      "variant": "default",
+      "route": "straight",
+      "label": "上传",
+      "labelDx": 80,
+      "labelDy": 20
+    },
+    {
+      "from": "hfhub",
+      "to": "checkpoint",
+      "variant": "dashed",
+      "route": "bottom-channel",
+      "label": "缓存",
+      "labelDx": 80,
+      "labelDy": 20
+    }
+  ]
+}

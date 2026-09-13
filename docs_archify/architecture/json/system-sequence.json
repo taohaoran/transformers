@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "from_pretrained 加载到 generate 推理核心时序",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1100, 900]
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "Python API" },
+    { "id": "auto", "type": "backend", "label": "AutoModel", "sublabel": "auto-registry" },
+    { "id": "config", "type": "backend", "label": "Config", "sublabel": "PretrainedConfig" },
+    { "id": "hub", "type": "backend", "label": "hub-utils", "sublabel": "Hub交互" },
+    { "id": "model", "type": "database", "label": "Model", "sublabel": "PreTrainedModel" },
+    { "id": "weight", "type": "backend", "label": "weight-io", "sublabel": "权重加载" },
+    { "id": "gen", "type": "backend", "label": "Generate", "sublabel": "GenerationMixin" },
+    { "id": "torch", "type": "external", "label": "PyTorch", "sublabel": "运行时" }
+  ],
+  "segments": [
+    { "from": 140, "to": 380, "label": "阶段一：模型加载 from_pretrained" },
+    { "from": 380, "to": 580, "label": "阶段二：权重加载与设备放置" },
+    { "from": 580, "to": 840, "label": "阶段三：generate 自回归推理循环" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "user", "to": "auto", "y": 160, "label": "AutoModel.from_pretrained(repo_id)", "variant": "emphasis" },
+    { "id": "m2", "from": "auto", "to": "config", "y": 200, "label": "AutoConfig.from_pretrained 解析模型类型", "variant": "default" },
+    { "id": "m3", "from": "config", "to": "hub", "y": 240, "label": "cached_file(config.json)", "variant": "default" },
+    { "id": "m4", "from": "hub", "to": "config", "y": 280, "label": "返回配置字典", "variant": "return" },
+    { "id": "m5", "from": "config", "to": "auto", "y": 320, "label": "Config实例 + 确定模型类", "variant": "return" },
+    { "id": "m6", "from": "auto", "to": "model", "y": 360, "label": "实例化具体模型类", "variant": "default" },
+    { "id": "m7", "from": "model", "to": "weight", "y": 400, "label": "_load_pretrained_model 加载权重", "variant": "emphasis" },
+    { "id": "m8", "from": "weight", "to": "hub", "y": 440, "label": "cached_file 下载权重分片", "variant": "default" },
+    { "id": "m9", "from": "hub", "to": "weight", "y": 480, "label": "返回本地缓存路径", "variant": "return" },
+    { "id": "m10", "from": "weight", "to": "model", "y": 520, "label": "load_state_dict 低内存加载", "variant": "default" },
+    { "id": "m11", "from": "model", "to": "torch", "y": 550, "label": "nn.Module.to(device)", "variant": "dashed" },
+    { "id": "m12", "from": "model", "to": "user", "y": 590, "label": "返回已加载模型实例", "variant": "return" },
+    { "id": "m13", "from": "user", "to": "gen", "y": 630, "label": "model.generate(input_ids, ...)", "variant": "emphasis" },
+    { "id": "m14", "from": "gen", "to": "model", "y": 670, "label": "循环 forward, KV Cache复用", "variant": "default" },
+    { "id": "m15", "from": "model", "to": "torch", "y": 700, "label": "张量运算/注意力计算", "variant": "dashed" },
+    { "id": "m16", "from": "torch", "to": "model", "y": 730, "label": "返回 logits", "variant": "return" },
+    { "id": "m17", "from": "gen", "to": "user", "y": 780, "label": "返回生成 token 序列", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "auto", "from": 160, "to": 370, "type": "backend" },
+    { "participant": "model", "from": 370, "to": 600, "type": "database" },
+    { "participant": "gen", "from": 640, "to": 790, "type": "backend" }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "单步训练时序",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1000, 700]
+  },
+  "participants": [
+    { "id": "loop", "type": "backend", "label": "训练循环", "sublabel": "_run_epoch" },
+    { "id": "cb", "type": "backend", "label": "回调", "sublabel": "CallbackHandler" },
+    { "id": "model", "type": "backend", "label": "模型", "sublabel": "forward" },
+    { "id": "accel", "type": "external", "label": "Accelerate", "sublabel": "backward" },
+    { "id": "opt", "type": "backend", "label": "优化器", "sublabel": "optimizer" }
+  ],
+  "segments": [
+    { "from": 160, "to": 300, "label": "前向+反向" },
+    { "from": 300, "to": 500, "label": "优化器步进（累积满时）" },
+    { "from": 500, "to": 640, "label": "日志/保存/评估" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "loop", "to": "cb", "y": 180, "label": "on_step_begin", "variant": "default" },
+    { "id": "m2", "from": "cb", "to": "loop", "y": 220, "label": "继续", "variant": "return" },
+    { "id": "m3", "from": "loop", "to": "model", "y": 250, "label": "forward → loss", "variant": "emphasis" },
+    { "id": "m4", "from": "model", "to": "loop", "y": 290, "label": "loss", "variant": "return" },
+    { "id": "m5", "from": "loop", "to": "accel", "y": 340, "label": "backward(loss)", "variant": "default" },
+    { "id": "m6", "from": "accel", "to": "loop", "y": 380, "label": "梯度就绪", "variant": "return" },
+    { "id": "m7", "from": "loop", "to": "opt", "y": 440, "label": "clip_grad → step()", "variant": "emphasis" },
+    { "id": "m8", "from": "opt", "to": "loop", "y": 490, "label": "参数更新", "variant": "return" },
+    { "id": "m9", "from": "loop", "to": "cb", "y": 540, "label": "on_step_end", "variant": "default" },
+    { "id": "m10", "from": "loop", "to": "cb", "y": 570, "label": "on_log / eval", "variant": "dashed" },
+    { "id": "m11", "from": "loop", "to": "cb", "y": 610, "label": "on_save", "variant": "dashed" }
+  ],
+  "activations": [
+    { "participant": "loop", "from": 180, "to": 650, "type": "backend" },
+    { "participant": "model", "from": 260, "to": 300, "type": "backend" },
+    { "participant": "accel", "from": 340, "to": 380, "type": "external" },
+    { "participant": "opt", "from": 440, "to": 490, "type": "backend" }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "modular 代码生成与模型卡片系统",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1200, 720]
+  },
+  "components": [
+    { "id": "modular", "type": "backend", "label": "modular_<name>.py", "sublabel": "models/<family>/ 手写源", "pos": [60, 80], "size": [230, 64], "tag": "可继承其他模型" },
+    { "id": "copied", "type": "security", "label": "# Copied from", "sublabel": "遗留复制标记", "pos": [60, 260], "size": [230, 60] },
+    { "id": "converter", "type": "backend", "label": "modular_model_converter", "sublabel": "LibCST 语法树转换", "pos": [450, 80], "size": [250, 64] },
+    { "id": "detector", "type": "backend", "label": "modular_model_detector", "sublabel": "依赖扫描/优先级", "pos": [450, 260], "size": [250, 60] },
+    { "id": "genfiles", "type": "database", "label": "生成的模型文件", "sublabel": "modeling_/configuration_/*.py", "pos": [870, 80], "size": [260, 64], "tag": "勿手改" },
+    { "id": "modelcard", "type": "backend", "label": "modelcard.py", "sublabel": "TrainingSummary 训练摘要", "pos": [870, 260], "size": [260, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "utils/ 代码生成工具", "wraps": ["converter", "detector", "copied"] }
+  ],
+  "connections": [
+    { "id": "m-cv", "from": "modular", "to": "converter", "label": "make fix-repo", "variant": "emphasis", "labelDy": 26 },
+    { "id": "cv-gen", "from": "converter", "to": "genfiles", "label": "写出", "variant": "emphasis", "labelDy": 26 },
+    { "id": "cp", "from": "copied", "to": "detector", "label": "check_copies 同步", "labelDy": 24 },
+    { "id": "gen-mc", "from": "genfiles", "to": "modelcard", "label": "无运行时调用", "variant": "dashed", "labelDy": 24 }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "机制要点", "items": [
+      "modular 是现行机制；# Copied from 是遗留机制，禁止新增",
+      "生成文件带自动生成横幅，CI 强制从 modular 重建",
+      "attr = AttributeError() 是删除继承属性的指令"
+    ]}
+  ]
+}

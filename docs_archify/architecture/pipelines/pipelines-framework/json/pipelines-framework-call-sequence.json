@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Pipeline.__call__ 推理调用时序",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1200, 920]
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "用户", "sublabel": "" },
+    { "id": "pipe", "type": "backend", "label": "__call__", "sublabel": "base.py:1217" },
+    { "id": "preprocess", "type": "backend", "label": "preprocess", "sublabel": "子类实现" },
+    { "id": "forward", "type": "backend", "label": "forward", "sublabel": "基类包装" },
+    { "id": "model", "type": "database", "label": "模型推理", "sublabel": "_forward→model" },
+    { "id": "postprocess", "type": "backend", "label": "postprocess", "sublabel": "子类实现" }
+  ],
+  "segments": [
+    { "from": 190, "to": 280, "label": "输入检测与参数融合" },
+    { "from": 280, "to": 560, "label": "单条推理 run_single" },
+    { "from": 560, "to": 820, "label": "批量推理 get_iterator" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "user", "to": "pipe", "y": 200, "label": "pipe(inputs, **kwargs)", "variant": "emphasis" },
+    { "id": "m2", "from": "pipe", "to": "preprocess", "y": 260, "label": "preprocess(input) → dict[tensors]", "variant": "emphasis" },
+    { "id": "m3", "from": "preprocess", "to": "pipe", "y": 290, "label": "model_inputs", "variant": "return" },
+    { "id": "m4", "from": "pipe", "to": "forward", "y": 320, "label": "forward(model_inputs)" },
+    { "id": "m5", "from": "forward", "to": "model", "y": 360, "label": "torch.no_grad + _forward(tensors)", "variant": "emphasis" },
+    { "id": "m6", "from": "model", "to": "forward", "y": 395, "label": "ModelOutput (搬回CPU)", "variant": "return" },
+    { "id": "m7", "from": "forward", "to": "pipe", "y": 425, "label": "model_outputs", "variant": "return" },
+    { "id": "m8", "from": "pipe", "to": "postprocess", "y": 460, "label": "postprocess(outputs) → 可读结果", "variant": "emphasis" },
+    { "id": "m9", "from": "postprocess", "to": "pipe", "y": 490, "label": "最终结果", "variant": "return" },
+    { "id": "m10", "from": "pipe", "to": "user", "y": 520, "label": "返回结果", "variant": "return" },
+    { "id": "m11", "from": "pipe", "to": "preprocess", "y": 590, "label": "[批量] DataLoader 多进程 preprocess", "variant": "dashed" },
+    { "id": "m12", "from": "pipe", "to": "model", "y": 640, "label": "[批量] 批次 _forward（GPU 批量）", "variant": "dashed" },
+    { "id": "m13", "from": "pipe", "to": "postprocess", "y": 690, "label": "[批量] PipelineIterator 逐条后处理", "variant": "dashed" }
+  ],
+  "activations": [
+    { "participant": "pipe", "from": 200, "to": 520, "type": "backend" },
+    { "participant": "forward", "from": 320, "to": 425, "type": "backend" },
+    { "participant": "model", "from": 360, "to": 395, "type": "database" }
+  ]
+}

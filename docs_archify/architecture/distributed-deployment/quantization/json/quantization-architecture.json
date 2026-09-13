@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": { "title": "量化框架架构", "quality_profile": "showcase", "locale": "zh-CN", "viewBox": [1200, 420] },
+  "components": [
+    { "id": "from", "type": "frontend", "label": "from_pretrained", "sublabel": "load_in_4bit=True", "pos": [40, 160], "size": [150, 70] },
+    { "id": "auto", "type": "backend", "label": "AutoHfQuantizer", "sublabel": "auto.py", "pos": [250, 160], "size": [150, 70] },
+    { "id": "base", "type": "backend", "label": "HfQuantizer(ABC)", "sublabel": "base.py", "pos": [460, 160], "size": [160, 70] },
+    { "id": "bnb", "type": "backend", "label": "bnb 4/8bit", "sublabel": "代表后端", "pos": [680, 80], "size": [140, 60] },
+    { "id": "gptq", "type": "backend", "label": "GPTQ/AWQ", "sublabel": "其他后端", "pos": [680, 200], "size": [140, 60] },
+    { "id": "lib", "type": "external", "label": "量化库", "sublabel": "bnb/GPTQ/AWQ/torchao", "pos": [890, 140], "size": [180, 70] }
+  ],
+  "connections": [
+    { "id": "f-a", "from": "from", "to": "auto" },
+    { "id": "a-b", "from": "auto", "to": "base" },
+    { "id": "b-bnb", "from": "base", "to": "bnb" },
+    { "id": "b-gptq", "from": "base", "to": "gptq" },
+    { "id": "bnb-l", "from": "bnb", "to": "lib" },
+    { "id": "gptq-l", "from": "gptq", "to": "lib" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "量化抽象", "items": [
+      "HfQuantizer: create_model + 权重加载前后钩子",
+      "AutoHfQuantizer 按 quantization_config 选后端",
+      "25+ 后端：bnb/GPTQ/AWQ/torchao/EETQ/HQQ 等"
+    ]}
+  ]
+}

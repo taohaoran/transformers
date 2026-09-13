@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "PreTrainedModel.from_pretrained 加载时序",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1280, 820],
+    "column_fit": "spread"
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "用户" },
+    { "id": "frompt", "type": "backend", "label": "from_pretrained" },
+    { "id": "cfg", "type": "backend", "label": "配置基类" },
+    { "id": "files", "type": "backend", "label": "权重定位" },
+    { "id": "model", "type": "backend", "label": "模型实例" },
+    { "id": "loader", "type": "backend", "label": "权重加载器" }
+  ],
+  "segments": [
+    { "from": 180, "to": 290, "label": "阶段一：加载配置" },
+    { "from": 310, "to": 440, "label": "阶段二：解析权重文件" },
+    { "from": 460, "to": 590, "label": "阶段三：实例化模型" },
+    { "from": 610, "to": 760, "label": "阶段四：加载与收尾" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "user", "to": "frompt", "y": 190, "label": "from_pretrained", "variant": "emphasis" },
+    { "id": "m2", "from": "frompt", "to": "cfg", "y": 230, "label": "config.from_pretrained", "variant": "emphasis" },
+    { "id": "m3", "from": "cfg", "to": "frompt", "y": 270, "label": "config", "variant": "return" },
+    { "id": "m4", "from": "frompt", "to": "files", "y": 330, "label": "定位权重文件", "variant": "dashed" },
+    { "id": "m5", "from": "files", "to": "frompt", "y": 390, "label": "checkpoint_files", "variant": "return" },
+    { "id": "m6", "from": "frompt", "to": "model", "y": 490, "label": "meta device 实例化", "variant": "emphasis" },
+    { "id": "m7", "from": "frompt", "to": "loader", "y": 550, "label": "_load_pretrained_model", "variant": "emphasis" },
+    { "id": "m8", "from": "loader", "to": "model", "y": 640, "label": "流式加载权重" },
+    { "id": "m9", "from": "frompt", "to": "model", "y": 690, "label": "tie_weights + eval", "variant": "dashed" },
+    { "id": "m10", "from": "frompt", "to": "user", "y": 730, "label": "就绪模型", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "frompt", "from": 190, "to": 730, "type": "backend" },
+    { "participant": "model", "from": 490, "to": 690, "type": "backend" },
+    { "participant": "loader", "from": 550, "to": 640, "type": "backend" }
+  ]
+}

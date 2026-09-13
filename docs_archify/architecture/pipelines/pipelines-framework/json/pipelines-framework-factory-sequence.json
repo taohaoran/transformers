@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "pipeline() 工厂构造时序",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1200, 920]
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "" },
+    { "id": "factory", "type": "backend", "label": "pipeline()", "sublabel": "工厂函数" },
+    { "id": "registry", "type": "database", "label": "注册表", "sublabel": "SUPPORTED_TASKS" },
+    { "id": "hub", "type": "cloud", "label": "Hub 层", "sublabel": "cached_file" },
+    { "id": "autoload", "type": "backend", "label": "加载器", "sublabel": "Auto/load_model" },
+    { "id": "pipe", "type": "backend", "label": "Pipeline", "sublabel": "子类实例" }
+  ],
+  "segments": [
+    { "from": 190, "to": 300, "label": "参数校验与配置" },
+    { "from": 300, "to": 460, "label": "任务分发" },
+    { "from": 460, "to": 660, "label": "模型与组件加载" },
+    { "from": 660, "to": 800, "label": "实例化" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "user", "to": "factory", "y": 200, "label": "pipeline(task, model=..., ...)", "variant": "emphasis" },
+    { "id": "m2", "from": "factory", "to": "hub", "y": 240, "label": "cached_file(config.json) 取 commit_hash" },
+    { "id": "m3", "from": "factory", "to": "registry", "y": 280, "label": "check_task(task) 别名解析", "variant": "emphasis" },
+    { "id": "m4", "from": "registry", "to": "factory", "y": 310, "label": "targeted_task = {impl, pt, default}", "variant": "return" },
+    { "id": "m5", "from": "factory", "to": "autoload", "y": 350, "label": "AutoConfig.from_pretrained(model)" },
+    { "id": "m6", "from": "autoload", "to": "factory", "y": 380, "label": "config, _commit_hash", "variant": "return" },
+    { "id": "m7", "from": "factory", "to": "autoload", "y": 420, "label": "load_model(model, model_classes=pt)", "variant": "emphasis" },
+    { "id": "m8", "from": "autoload", "to": "factory", "y": 450, "label": "PreTrainedModel 实例", "variant": "return" },
+    { "id": "m9", "from": "factory", "to": "autoload", "y": 500, "label": "_resolve_tokenizer / _resolve_processor" },
+    { "id": "m10", "from": "autoload", "to": "factory", "y": 530, "label": "tokenizer, processor, image_processor", "variant": "return" },
+    { "id": "m11", "from": "factory", "to": "pipe", "y": 580, "label": "pipeline_class(model, task, **kwargs)", "variant": "emphasis" },
+    { "id": "m12", "from": "pipe", "to": "factory", "y": 620, "label": "Pipeline 实例", "variant": "return" },
+    { "id": "m13", "from": "factory", "to": "user", "y": 680, "label": "返回 Pipeline 子类实例", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "factory", "from": 200, "to": 660, "type": "backend" },
+    { "participant": "autoload", "from": 350, "to": 530, "type": "backend" }
+  ]
+}

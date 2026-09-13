@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "视觉模型家族架构（ViT / CLIP / Swin / DETR）",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1200, 740]
+  },
+  "components": [
+    { "id": "patch", "type": "backend", "label": "ViT patch 嵌入", "sublabel": "ViTPatchEmbeddings 切 patch+线性投影", "pos": [60, 80], "size": [240, 64] },
+    { "id": "enc", "type": "backend", "label": "ViTEncoder", "sublabel": "标准双向自注意力堆叠", "pos": [450, 80], "size": [220, 64] },
+    { "id": "head", "type": "database", "label": "分类/检测头", "sublabel": "图像分类/分割", "pos": [860, 80], "size": [220, 60] },
+    { "id": "clipimg", "type": "backend", "label": "CLIP 图像编码器", "sublabel": "ViT/CNN 出图像嵌入", "pos": [60, 280], "size": [240, 60] },
+    { "id": "cliptext", "type": "backend", "label": "CLIP 文本编码器", "sublabel": "Transformer 出文本嵌入", "pos": [860, 280], "size": [220, 60] },
+    { "id": "contr", "type": "security", "label": "图文对比损失", "sublabel": "对比相似度矩阵", "pos": [450, 420], "size": [220, 60], "tag": "logit_scale" },
+    { "id": "swin", "type": "backend", "label": "Swin 分层 Transformer", "sublabel": "移位窗口注意力", "pos": [60, 560], "size": [240, 60] },
+    { "id": "cnn", "type": "backend", "label": "DETR CNN backbone", "sublabel": "load_backbone(timm)", "pos": [450, 560], "size": [220, 60] },
+    { "id": "detr", "type": "backend", "label": "DETR enc-dec", "sublabel": "object queries + 匈牙利匹配", "pos": [860, 560], "size": [220, 64] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "ViT 主干", "wraps": ["patch", "enc", "head"] },
+    { "kind": "region", "label": "CLIP 双塔", "wraps": ["clipimg", "cliptext", "contr"] }
+  ],
+  "connections": [
+    { "id": "p-e", "from": "patch", "to": "enc", "label": "patch tokens", "variant": "emphasis", "labelDy": 24 },
+    { "id": "e-h", "from": "enc", "to": "head", "label": "特征", "labelDy": 24 },
+    { "id": "ci-con", "from": "clipimg", "to": "contr", "label": "图像嵌入", "labelDy": 24 },
+    { "id": "ct-con", "from": "cliptext", "to": "contr", "label": "文本嵌入", "labelDy": 24 },
+    { "id": "cnn-detr", "from": "cnn", "to": "detr", "label": "特征图", "variant": "emphasis", "labelDy": 24 }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "视觉家族共性", "items": [
+      "ViT：图像切 patch 当 token 过 transformer",
+      "CLIP：双塔图文对比学习",
+      "DETR：CNN backbone + transformer + 集合预测"
+    ]}
+  ]
+}

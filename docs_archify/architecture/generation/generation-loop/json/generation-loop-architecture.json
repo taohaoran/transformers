@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "生成核心循环组件架构",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "views": [
+      { "id": "main", "label": "主路径", "focus": ["generate", "sample-loop"], "note": "generate 分发到解码循环" }
+    ]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "model.generate()", "pos": [40, 280], "size": [120, 56] },
+    { "id": "generate", "type": "backend", "label": "generate()", "sublabel": "调度入口", "pos": [220, 280], "size": [130, 56], "tag": "9步准备" },
+    { "id": "config", "type": "database", "label": "GenConfig", "sublabel": "100+ 参数", "pos": [220, 130], "size": [120, 56] },
+    { "id": "sample-loop", "type": "backend", "label": "_sample 循环", "sublabel": "贪心/采样", "pos": [420, 200], "size": [140, 60], "tag": "核心循环" },
+    { "id": "beam-loop", "type": "backend", "label": "_beam_search", "sublabel": "Beam", "pos": [420, 360], "size": [140, 60] },
+    { "id": "logits-proc", "type": "messagebus", "label": "LogitsProcessor", "sublabel": "温度/top-k/top-p", "pos": [630, 120], "size": [150, 56] },
+    { "id": "stop-crit", "type": "messagebus", "label": "StoppingCriteria", "sublabel": "MaxLen/Eos", "pos": [630, 240], "size": [150, 56] },
+    { "id": "model-fwd", "type": "external", "label": "模型 forward()", "sublabel": "外部依赖", "pos": [850, 200], "size": [140, 56] },
+    { "id": "kv-cache", "type": "database", "label": "KV Cache", "sublabel": "Dynamic/Static", "pos": [850, 340], "size": [140, 56] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "GenerationMixin（本叶子核心）", "wraps": ["generate", "config", "sample-loop", "beam-loop", "logits-proc", "stop-crit"] },
+    { "kind": "security-group", "label": "外部依赖", "wraps": ["model-fwd", "kv-cache"] }
+  ],
+  "connections": [
+    { "id": "u-g", "from": "user", "to": "generate", "label": "调用", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "g-config", "from": "generate", "to": "config", "label": "读取参数", "fromSide": "top", "toSide": "bottom" },
+    { "id": "g-sample", "from": "generate", "to": "sample-loop", "label": "greedy/sample", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "g-beam", "from": "generate", "to": "beam-loop", "label": "beam_search", "fromSide": "right", "toSide": "left" },
+    { "id": "sample-lp", "from": "sample-loop", "to": "logits-proc", "label": "每步施加", "fromSide": "right", "toSide": "left" },
+    { "id": "sample-sc", "from": "sample-loop", "to": "stop-crit", "label": "检查停止", "fromSide": "right", "toSide": "left" },
+    { "id": "sample-fwd", "from": "sample-loop", "to": "model-fwd", "label": "前向", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "beam-fwd", "from": "beam-loop", "to": "model-fwd", "fromSide": "right", "toSide": "left" },
+    { "id": "fwd-cache", "from": "model-fwd", "to": "kv-cache", "variant": "dashed", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心机制", "items": [
+      "generate() 9步调度：config→输入→Cache→处理器→分发",
+      "_sample 循环：前向→logits_processor→argmax/multinomial→停止检查",
+      "GENERATION_MODES_MAPPING 反射分发"
+    ]},
+    { "dot": "cyan", "title": "性能优化", "items": [
+      "DeferredStopCheck 减少 GPU 同步点",
+      "logits_to_keep=1 避免计算全量 logits",
+      "del outputs 释放显存"
+    ]}
+  ]
+}

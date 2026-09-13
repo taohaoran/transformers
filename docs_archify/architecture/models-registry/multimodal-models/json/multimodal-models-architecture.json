@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "多模态大模型架构（LLaVA / Qwen2-VL / BLIP）",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1200, 700]
+  },
+  "components": [
+    { "id": "image", "type": "external", "label": "图像", "sublabel": "pixel_values", "pos": [60, 90], "size": [180, 60] },
+    { "id": "text", "type": "external", "label": "文本 token", "sublabel": "input_ids", "pos": [60, 260], "size": [180, 60] },
+    { "id": "vtower", "type": "backend", "label": "视觉编码器", "sublabel": "vision_tower (ViT/SigLIP)", "pos": [380, 90], "size": [230, 64] },
+    { "id": "proj", "type": "backend", "label": "多模态投影", "sublabel": "LlavaMultiModalProjector (MLP)", "pos": [380, 260], "size": [230, 64], "tag": "对齐到 LLM 维" },
+    { "id": "merge", "type": "backend", "label": "图像文本 token 拼接", "sublabel": "image_features 替换图像占位 token", "pos": [720, 175], "size": [220, 70] },
+    { "id": "llm", "type": "database", "label": "语言模型", "sublabel": "language_model (LLaMA/Qwen2)", "pos": [720, 360], "size": [220, 64], "tag": "因果解码" },
+    { "id": "out", "type": "backend", "label": "生成文本", "sublabel": "LM head + generate", "pos": [720, 540], "size": [220, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "LlavaForConditionalGeneration", "wraps": ["vtower", "proj", "merge", "llm", "out"] }
+  ],
+  "connections": [
+    { "id": "i-vt", "from": "image", "to": "vtower", "label": "视觉编码", "variant": "emphasis", "labelDy": 24 },
+    { "id": "vt-proj", "from": "vtower", "to": "proj", "label": "图像特征", "labelDy": 24 },
+    { "id": "proj-merge", "from": "proj", "to": "merge", "label": "投影后", "variant": "emphasis", "labelDy": 24 },
+    { "id": "t-merge", "from": "text", "to": "merge", "label": "文本", "labelDy": 24 },
+    { "id": "merge-llm", "from": "merge", "to": "llm", "label": "混合序列", "variant": "emphasis", "labelDy": 24 },
+    { "id": "llm-out", "from": "llm", "to": "out", "label": "logits", "labelDy": 24 }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "多模态共性", "items": [
+      "视觉编码器 + 投影层 + 冻结/微调 LLM",
+      "图像 token 与文本 token 拼进同一序列喂 LLM",
+      "Qwen2-VL 用动态分辨率；BLIP 加图文匹配头"
+    ]}
+  ]
+}

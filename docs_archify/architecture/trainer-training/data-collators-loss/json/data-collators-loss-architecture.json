@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "DataCollator 与损失函数体系",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "components": [
+    { "id": "base", "type": "backend", "label": "DataCollatorMixin", "sublabel": "基类接口", "pos": [40, 100], "size": [140, 56] },
+    { "id": "default", "type": "backend", "label": "Default", "sublabel": "堆叠张量", "pos": [260, 60], "size": [110, 56] },
+    { "id": "padding", "type": "backend", "label": "WithPadding", "sublabel": "动态 padding", "pos": [260, 160], "size": [120, 56] },
+    { "id": "mlm", "type": "backend", "label": "MLM", "sublabel": "随机掩码+labels", "pos": [460, 60], "size": [110, 56] },
+    { "id": "wwm", "type": "backend", "label": "WWM", "sublabel": "整词掩码", "pos": [460, 160], "size": [110, 56] },
+    { "id": "seq2seq", "type": "backend", "label": "Seq2Seq", "sublabel": "decoder_input", "pos": [460, 260], "size": [120, 56] },
+    { "id": "loss", "type": "database", "label": "loss/ 目录", "sublabel": "检测+语音损失", "pos": [680, 160], "size": [130, 56] },
+    { "id": "trainer", "type": "external", "label": "Trainer", "sublabel": "消费 batch", "pos": [880, 160], "size": [100, 56] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "数据整理（data_collator.py）", "wraps": ["base", "default", "padding", "mlm", "wwm", "seq2seq"] },
+    { "kind": "region", "label": "专用损失（loss/）", "wraps": ["loss"] }
+  ],
+  "connections": [
+    { "id": "b-d", "from": "base", "to": "default", "fromSide": "right", "toSide": "left" },
+    { "id": "b-p", "from": "base", "to": "padding", "fromSide": "right", "toSide": "left" },
+    { "id": "p-mlm", "from": "padding", "to": "mlm", "fromSide": "right", "toSide": "left" },
+    { "id": "mlm-wwm", "from": "mlm", "to": "wwm", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "p-s2s", "from": "padding", "to": "seq2seq", "variant": "dashed", "fromSide": "right", "toSide": "left" },
+    { "id": "s2s-l", "from": "seq2seq", "to": "loss", "variant": "dashed", "fromSide": "right", "toSide": "left" },
+    { "id": "l-t", "from": "loss", "to": "trainer", "label": "batch dict", "variant": "emphasis", "fromSide": "right", "toSide": "left" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "MLM 策略", "items": [
+      "80% → [MASK]",
+      "10% → 随机 token",
+      "10% → 保持原 token",
+      "labels: -100 忽略非掩码位"
+    ]}
+  ]
+}

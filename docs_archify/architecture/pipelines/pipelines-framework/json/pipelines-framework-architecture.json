@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Pipeline 管线框架组件架构",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1280, 780]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "pipeline('task')", "pos": [40, 340], "size": [140, 70] },
+    { "id": "factory", "type": "backend", "label": "pipeline() 工厂", "sublabel": "__init__.py:671", "pos": [240, 340], "size": [150, 90], "tag": "任务分发" },
+    { "id": "registry", "type": "database", "label": "SUPPORTED_TASKS", "sublabel": "任务注册表", "pos": [240, 160], "size": [150, 70] },
+    { "id": "pipeline-base", "type": "backend", "label": "Pipeline 基类", "sublabel": "base.py:757", "pos": [470, 340], "size": [160, 100], "tag": "三步抽象" },
+    { "id": "task-pipeline", "type": "backend", "label": "任务管线子类", "sublabel": "28 个任务管线", "pos": [700, 340], "size": [170, 100], "tag": "preprocess/_forward/postprocess" },
+    { "id": "model", "type": "database", "label": "PreTrainedModel", "sublabel": "外部: PyTorch", "pos": [940, 340], "size": [170, 80] },
+    { "id": "load-model", "type": "backend", "label": "load_model()", "sublabel": "base.py:187", "pos": [240, 560], "size": [150, 70] },
+    { "id": "auto-config", "type": "backend", "label": "Auto 系列", "sublabel": "配置/分词器加载", "pos": [470, 560], "size": [160, 70] },
+    { "id": "iterators", "type": "messagebus", "label": "批量迭代器族", "sublabel": "pt_utils.py", "pos": [700, 560], "size": [170, 70] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "pipelines 框架层", "wraps": ["factory", "registry", "load-model", "auto-config", "pipeline-base", "iterators"] },
+    { "kind": "region", "label": "任务实现层", "wraps": ["task-pipeline"] }
+  ],
+  "connections": [
+    { "id": "u-factory", "from": "user", "to": "factory", "label": "任务名+模型", "variant": "emphasis" },
+    { "id": "factory-reg", "from": "factory", "to": "registry", "label": "check_task" },
+    { "id": "factory-base", "from": "factory", "to": "pipeline-base", "label": "实例化", "variant": "emphasis" },
+    { "id": "factory-load", "from": "factory", "to": "load-model" },
+    { "id": "factory-auto", "from": "factory", "to": "auto-config" },
+    { "id": "base-sub", "from": "pipeline-base", "to": "task-pipeline", "label": "三步方法", "variant": "emphasis" },
+    { "id": "sub-model", "from": "task-pipeline", "to": "model", "label": "forward" },
+    { "id": "base-iter", "from": "pipeline-base", "to": "iterators", "label": "DataLoader", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "框架核心机制", "items": [
+      "pipeline() 工厂按 SUPPORTED_TASKS 分发任务",
+      "Pipeline 基类定义 preprocess→_forward→postprocess 三步",
+      "批量推理用 PipelineIterator 反批次保持单条接口",
+      "load_model() 多模型类尝试 + dtype 回退"
+    ]}
+  ]
+}

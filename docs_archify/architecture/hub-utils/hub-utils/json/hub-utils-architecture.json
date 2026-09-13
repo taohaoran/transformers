@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": { "title": "Hub 交互组件架构", "quality_profile": "showcase", "locale": "zh-CN", "viewBox": [1200, 420] },
+  "components": [
+    { "id": "user", "type": "frontend", "label": "用户代码", "sublabel": "from_pretrained", "pos": [40, 160], "size": [140, 70] },
+    { "id": "cached", "type": "backend", "label": "cached_file()", "sublabel": "hub.py:239", "pos": [240, 160], "size": [150, 70] },
+    { "id": "cache", "type": "database", "label": "本地缓存", "sublabel": "HF_HOME", "pos": [460, 80], "size": [150, 60] },
+    { "id": "auth", "type": "security", "label": "认证", "sublabel": "HfFolder/token", "pos": [460, 200], "size": [150, 60] },
+    { "id": "hub", "type": "cloud", "label": "HF Hub", "sublabel": "远端服务", "pos": [680, 160], "size": [150, 70] },
+    { "id": "mc", "type": "backend", "label": "ModelCard", "sublabel": "modelcard.py", "pos": [900, 160], "size": [150, 70] }
+  ],
+  "connections": [
+    { "id": "u-c", "from": "user", "to": "cached" },
+    { "id": "c-cache", "from": "cached", "to": "cache" },
+    { "id": "c-auth", "from": "cached", "to": "auth" },
+    { "id": "c-hub", "from": "cached", "to": "hub" },
+    { "id": "mc-hub", "from": "mc", "to": "hub" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "Hub 交互要点", "items": [
+      "cached_file 统一下载入口（缓存+锁+鉴权）",
+      "HF_HUB_OFFLINE 离线模式降级",
+      "commit hash 贯穿加载链保证可复现"
+    ]}
+  ]
+}

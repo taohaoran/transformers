@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "modeling-utils 组件与边界",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1200, 760]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "AutoModel.from_pretrained", "pos": [60, 80], "size": [170, 60] },
+    { "id": "base", "type": "backend", "label": "PreTrainedModel", "sublabel": "modeling_utils.py", "pos": [340, 80], "size": [200, 70], "tag": "模型基类" },
+    { "id": "load-chain", "type": "backend", "label": "from_pretrained 加载链", "sublabel": "配置→实例化→权重", "pos": [640, 80], "size": [210, 70] },
+    { "id": "load-config", "type": "backend", "label": "LoadStateDictConfig", "sublabel": "聚合加载参数", "pos": [940, 80], "size": [210, 60] },
+    { "id": "cfg", "type": "backend", "label": "configuration-utils", "sublabel": "配置基类", "pos": [340, 280], "size": [200, 60] },
+    { "id": "weightio", "type": "backend", "label": "weight-io", "sublabel": "权重文件加载", "pos": [640, 280], "size": [210, 60] },
+    { "id": "outputs", "type": "backend", "label": "ModelOutput 体系", "sublabel": "modeling_outputs.py", "pos": [60, 460], "size": [200, 60] },
+    { "id": "torch", "type": "cloud", "label": "PyTorch / accelerate", "sublabel": "外部", "pos": [640, 460], "size": [210, 60], "tag": "外部" },
+    { "id": "safetensors", "type": "database", "label": "safetensors / bin", "sublabel": "权重文件", "pos": [940, 460], "size": [210, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "core-framework / modeling-utils", "wraps": ["base", "load-chain", "load-config", "outputs"] }
+  ],
+  "connections": [
+    { "id": "u-b", "from": "user", "to": "base", "label": "from_pretrained", "variant": "emphasis" },
+    { "id": "b-lc", "from": "base", "to": "load-chain", "label": "加载入口" },
+    { "id": "lc-lcfg", "from": "load-chain", "to": "load-config", "label": "组装配置" },
+    { "id": "lc-cfg", "from": "load-chain", "to": "cfg", "label": "config.from_pretrained", "variant": "dashed" },
+    { "id": "lc-wio", "from": "load-chain", "to": "weightio", "label": "定位权重", "labelDy": 30 },
+    { "id": "b-out", "from": "base", "to": "outputs", "label": "forward", "labelDy": 30 },
+    { "id": "b-torch", "from": "base", "to": "torch", "label": "nn.Module", "variant": "dashed" },
+    { "id": "wio-st", "from": "weightio", "to": "safetensors", "label": "读权重" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "加载链要点", "items": [
+      "低内存加载：meta device 实例化 + 流式权重注入",
+      "LoadStateDictConfig 聚合 dtype/device_map/quantizer",
+      "加载后自动 tie_weights 与 eval()",
+      "注意力后端回退 flash→sdpa→eager"
+    ]},
+    { "dot": "cyan", "title": "外部组件", "items": [
+      "PyTorch / accelerate / safetensors 库",
+      "FlashAttention / SDPA 内核",
+      "GPTQ / AWQ / BnB 量化后端"
+    ]}
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "分布式并行策略组件架构",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1280, 400]
+  },
+  "components": [
+    { "id": "entry", "type": "frontend", "label": "模型加载", "sublabel": "from_pretrained", "pos": [40, 160], "size": [150, 70] },
+    { "id": "mesh", "type": "backend", "label": "DeviceMesh", "sublabel": "分布式初始化", "pos": [250, 160], "size": [150, 70] },
+    { "id": "tp", "type": "backend", "label": "张量并行 TP", "sublabel": "tensor_parallel.py", "pos": [460, 100], "size": [160, 70] },
+    { "id": "pp", "type": "backend", "label": "流水线并行 PP", "sublabel": "pipeline_parallel.py", "pos": [460, 240], "size": [160, 70] },
+    { "id": "fsdp", "type": "backend", "label": "FSDP", "sublabel": "fsdp.py", "pos": [690, 170], "size": [150, 70] },
+    { "id": "torch-dist", "type": "external", "label": "PyTorch Distributed", "sublabel": "外部依赖", "pos": [900, 170], "size": [180, 70] }
+  ],
+  "connections": [
+    { "id": "e-mesh", "from": "entry", "to": "mesh" },
+    { "id": "mesh-tp", "from": "mesh", "to": "tp" },
+    { "id": "mesh-pp", "from": "mesh", "to": "pp" },
+    { "id": "mesh-fsdp", "from": "mesh", "to": "fsdp" },
+    { "id": "tp-torch", "from": "tp", "to": "torch-dist" },
+    { "id": "fsdp-torch", "from": "fsdp", "to": "torch-dist" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "并行策略要点", "items": [
+      "TP: Colwise/Rowwise 按权重维切分，DTensor 包装",
+      "PP: 按层切 stage，stage 间 P2P 传 hidden states",
+      "FSDP: fully_shard 包装，参数 all-gather 前向",
+      "当前 PP 为朴素前向，无 micro-batch 调度"
+    ]}
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "优化器与学习率调度架构",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "components": [
+    { "id": "factory", "type": "backend", "label": "create_optimizer", "sublabel": "trainer.py:1229", "pos": [40, 100], "size": [130, 56], "tag": "工厂" },
+    { "id": "adamw", "type": "backend", "label": "AdamW", "sublabel": "torch/adafactor", "pos": [260, 60], "size": [120, 56] },
+    { "id": "lora", "type": "backend", "label": "GaLore/Apollo", "sublabel": "低秩优化", "pos": [260, 160], "size": [130, 56] },
+    { "id": "other", "type": "backend", "label": "SGD/Adagrad", "sublabel": "经典优化器", "pos": [260, 260], "size": [130, 56] },
+    { "id": "sched", "type": "backend", "label": "create_scheduler", "sublabel": "trainer.py:1305", "pos": [460, 100], "size": [130, 56], "tag": "工厂" },
+    { "id": "linear", "type": "backend", "label": "Linear/Cosine", "sublabel": "warmup+衰减", "pos": [680, 60], "size": [130, 56] },
+    { "id": "wsd", "type": "backend", "label": "WSD/InverseSqrt", "sublabel": "特殊调度", "pos": [680, 160], "size": [130, 56] },
+    { "id": "seq2seq", "type": "backend", "label": "Seq2SeqTrainer", "sublabel": "eval 生成+指标", "pos": [460, 260], "size": [130, 56] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "优化器工厂（trainer_optimizer.py）", "wraps": ["factory", "adamw", "lora", "other"] },
+    { "kind": "region", "label": "调度器工厂（optimization.py）", "wraps": ["sched", "linear", "wsd"] },
+    { "kind": "security-group", "label": "扩展", "wraps": ["seq2seq"] }
+  ],
+  "connections": [
+    { "id": "f-a", "from": "factory", "to": "adamw", "fromSide": "right", "toSide": "left" },
+    { "id": "f-l", "from": "factory", "to": "lora", "fromSide": "right", "toSide": "left" },
+    { "id": "f-o", "from": "factory", "to": "other", "fromSide": "right", "toSide": "left" },
+    { "id": "s-l", "from": "sched", "to": "linear", "fromSide": "right", "toSide": "left" },
+    { "id": "s-w", "from": "sched", "to": "wsd", "fromSide": "right", "toSide": "left" },
+    { "id": "f-s", "from": "factory", "to": "sched", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "s-seq", "from": "sched", "to": "seq2seq", "variant": "dashed", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "工厂模式", "items": [
+      "按 optim 枚举分发 15+ 优化器",
+      "按 lr_scheduler_type 分发 10+ 调度",
+      "参数分组：decay 排除 bias/LayerNorm"
+    ]}
+  ]
+}

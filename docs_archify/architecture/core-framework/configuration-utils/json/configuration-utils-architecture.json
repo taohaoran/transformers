@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "configuration-utils 组件与边界",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1200, 860]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "from_pretrained", "pos": [80, 60], "size": [170, 60] },
+    { "id": "autoconfig", "type": "backend", "label": "AutoConfig 工厂", "sublabel": "configuration_auto.py", "pos": [360, 60], "size": [200, 60], "tag": "静态工厂" },
+    { "id": "lazy-map", "type": "backend", "label": "惰性注册表", "sublabel": "_LazyConfigMapping", "pos": [650, 60], "size": [200, 60] },
+    { "id": "pretrained-config", "type": "backend", "label": "PreTrainedConfig", "sublabel": "配置基类", "pos": [360, 240], "size": [200, 70], "tag": "配置基类" },
+    { "id": "get-config", "type": "backend", "label": "_get_config_dict", "sublabel": "定位配置文件", "pos": [650, 240], "size": [200, 60] },
+    { "id": "from-dict", "type": "backend", "label": "from_dict", "sublabel": "实例化", "pos": [360, 420], "size": [200, 70] },
+    { "id": "save", "type": "backend", "label": "save_pretrained", "sublabel": "写 config.json", "pos": [650, 420], "size": [200, 60] },
+    { "id": "hub", "type": "cloud", "label": "HF Hub", "sublabel": "cached_file（外部）", "pos": [940, 240], "size": [220, 60], "tag": "外部" },
+    { "id": "model-mod", "type": "backend", "label": "模型配置模块", "sublabel": "importlib 惰性加载", "pos": [650, 600], "size": [200, 60] },
+    { "id": "json", "type": "database", "label": "config.json", "sublabel": "本地 / Hub", "pos": [940, 420], "size": [220, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "core-framework / configuration-utils", "wraps": ["autoconfig", "lazy-map", "pretrained-config", "get-config", "from-dict", "save"] },
+    { "kind": "region", "label": "外部依赖", "wraps": ["hub", "json", "model-mod"] }
+  ],
+  "connections": [
+    { "id": "u-ac", "from": "user", "to": "autoconfig", "label": "from_pretrained", "variant": "emphasis" },
+    { "id": "ac-map", "from": "autoconfig", "to": "lazy-map", "label": "查 model_type" },
+    { "id": "ac-pc", "from": "autoconfig", "to": "pretrained-config", "label": "get_config_dict", "labelDy": 30 },
+    { "id": "pc-gc", "from": "pretrained-config", "to": "get-config", "label": "定位文件" },
+    { "id": "gc-hub", "from": "get-config", "to": "hub", "label": "下载", "variant": "dashed" },
+    { "id": "gc-json", "from": "get-config", "to": "json", "label": "读 JSON" },
+    { "id": "pc-fd", "from": "pretrained-config", "to": "from-dict", "label": "实例化", "labelDy": 30 },
+    { "id": "fd-mm", "from": "from-dict", "to": "model-mod", "label": "惰性加载类", "variant": "dashed" },
+    { "id": "pc-sv", "from": "pretrained-config", "to": "save", "label": "save" },
+    { "id": "sv-json", "from": "save", "to": "json", "label": "写 JSON" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "关键机制", "items": [
+      "惰性注册表按需 importlib，启动期不加载全部模型",
+      "加载三段式：定位文件 → 读 JSON → from_dict",
+      "保存时先校验无残留生成参数，再写 diff 序列化"
+    ]},
+    { "dot": "cyan", "title": "外部组件", "items": [
+      "HF Hub 下载/缓存由 huggingface_hub 库完成",
+      "PyTorch dtype 解析依赖 torch（外部）",
+      "trust_remote_code 走 dynamic_module_utils"
+    ]}
+  ]
+}

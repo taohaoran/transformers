@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "训练循环状态机",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [900, 600]
+  },
+  "lanes": [
+    { "id": "main", "label": "训练流程" },
+    { "id": "term", "label": "终止" }
+  ],
+  "states": [
+    { "id": "init", "type": "start", "label": "初始化", "sublabel": "数据/优化器", "lane": "main", "col": 0 },
+    { "id": "epoch", "type": "active", "label": "Epoch", "sublabel": "轮次循环", "lane": "main", "col": 1 },
+    { "id": "step", "type": "active", "label": "Step", "sublabel": "forward/backward", "lane": "main", "col": 2 },
+    { "id": "update", "type": "active", "label": "优化器", "sublabel": "clip/step", "lane": "main", "col": 3 },
+    { "id": "done", "type": "success", "label": "完成", "sublabel": "max_steps", "lane": "term", "col": 2 },
+    { "id": "stop", "type": "failure", "label": "终止", "sublabel": "提前停止", "lane": "term", "col": 0 }
+  ],
+  "transitions": [
+    { "from": "init", "to": "epoch" },
+    { "from": "epoch", "to": "step" },
+    { "from": "step", "to": "update" },
+    { "from": "update", "to": "step", "label": "继续", "variant": "dashed" },
+    { "from": "update", "to": "done", "label": "达到上限", "variant": "emphasis" },
+    { "from": "epoch", "to": "stop", "variant": "security" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "状态语义", "items": [
+      "Epoch 嵌套 Step 循环",
+      "梯度累积 N 步才优化器步进",
+      "日志/保存/评估在每步后按策略触发"
+    ]}
+  ]
+}

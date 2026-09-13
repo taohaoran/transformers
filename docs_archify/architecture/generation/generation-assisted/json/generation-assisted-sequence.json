@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "推测解码：候选-验证-接受时序",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1000, 800]
+  },
+  "participants": [
+    { "id": "loop", "type": "backend", "label": "assisted_loop", "sublabel": "主循环" },
+    { "id": "cand", "type": "backend", "label": "CandGen", "sublabel": "草稿模型" },
+    { "id": "target", "type": "external", "label": "目标模型", "sublabel": "批量验证" },
+    { "id": "cache", "type": "database", "label": "KV Cache", "sublabel": "裁剪" }
+  ],
+  "segments": [
+    { "from": 160, "to": 300, "label": "候选生成" },
+    { "from": 300, "to": 520, "label": "目标验证" },
+    { "from": 520, "to": 740, "label": "接受/拒绝与策略更新" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "loop", "to": "cand", "y": 180, "label": "get_candidates(input_ids)", "variant": "emphasis" },
+    { "id": "m2", "from": "cand", "to": "loop", "y": 230, "label": "候选 tokens (N 个) + 草稿 logits", "variant": "return" },
+    { "id": "m3", "from": "loop", "to": "target", "y": 320, "label": "批量前向 N+1 个位置", "variant": "emphasis" },
+    { "id": "m4", "from": "target", "to": "loop", "y": 380, "label": "N+1 个位置的 logits", "variant": "return" },
+    { "id": "m5", "from": "loop", "to": "cand", "y": 440, "label": "logits_processor 处理", "variant": "default" },
+    { "id": "m6", "from": "cand", "to": "loop", "y": 490, "label": "argmax 比较 → n_matches", "variant": "return" },
+    { "id": "m7", "from": "loop", "to": "cache", "y": 550, "label": "crop(N - n_matches) 未接受 KV", "variant": "default" },
+    { "id": "m8", "from": "cache", "to": "loop", "y": 600, "label": "Cache 裁剪完成", "variant": "return" },
+    { "id": "m9", "from": "loop", "to": "cand", "y": 660, "label": "update_candidate_strategy(n_matches)", "variant": "default" },
+    { "id": "m10", "from": "cand", "to": "loop", "y": 710, "label": "调整 num_assistant_tokens", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "loop", "from": 180, "to": 710, "type": "backend" },
+    { "participant": "cand", "from": 180, "to": 230, "type": "backend" },
+    { "participant": "target", "from": 320, "to": 380, "type": "external" }
+  ]
+}

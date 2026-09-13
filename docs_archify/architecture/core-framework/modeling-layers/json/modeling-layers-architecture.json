@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "modeling-layers 组件与边界",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1280, 520]
+  },
+  "components": [
+    { "id": "models", "type": "external", "label": "具体模型", "sublabel": "models/<x>/", "pos": [60, 200], "size": [180, 60] },
+    { "id": "disp", "type": "backend", "label": "modeling-layers 工具集", "sublabel": "7 个模块", "pos": [360, 200], "size": [200, 60], "tag": "本叶子" },
+    { "id": "layers", "type": "backend", "label": "层构建块", "sublabel": "modeling_layers.py", "pos": [660, 60], "size": [200, 56] },
+    { "id": "mask", "type": "backend", "label": "掩码工具", "sublabel": "attn_mask_utils", "pos": [660, 140], "size": [200, 56] },
+    { "id": "flash", "type": "backend", "label": "FA 适配", "sublabel": "flash_attn_utils", "pos": [660, 220], "size": [200, 56] },
+    { "id": "rope", "type": "backend", "label": "RoPE", "sublabel": "rope_utils", "pos": [660, 300], "size": [200, 56] },
+    { "id": "act", "type": "backend", "label": "激活函数", "sublabel": "activations.py", "pos": [660, 380], "size": [200, 56] },
+    { "id": "torch", "type": "cloud", "label": "PyTorch / FA 内核", "sublabel": "外部", "pos": [960, 220], "size": [220, 60], "tag": "外部" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "core-framework / modeling-layers", "wraps": ["disp", "layers", "mask", "flash", "rope", "act"] }
+  ],
+  "connections": [
+    { "id": "m-disp", "from": "models", "to": "disp", "label": "调用", "variant": "emphasis" },
+    { "id": "d-layers", "from": "disp", "to": "layers", "label": "" },
+    { "id": "d-mask", "from": "disp", "to": "mask", "label": "" },
+    { "id": "d-flash", "from": "disp", "to": "flash", "label": "" },
+    { "id": "d-rope", "from": "disp", "to": "rope", "label": "" },
+    { "id": "d-act", "from": "disp", "to": "act", "label": "" },
+    { "id": "f-torch", "from": "flash", "to": "torch", "label": "CUDA 内核", "variant": "dashed" },
+    { "id": "r-torch", "from": "rope", "to": "torch", "label": "inv_freq", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "分派机制", "items": [
+      "attn_implementation 选择 eager/sdpa/flash",
+      "rope_scaling.type 分派 linear/dynamic/yarn",
+      "activation 字符串查 ACT2CLS 注册表",
+      "FA 不可用时自动降级 SDPA/eager"
+    ]}
+  ]
+}

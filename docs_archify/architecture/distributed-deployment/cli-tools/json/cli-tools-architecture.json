@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": { "title": "transformers-cli 工具架构", "quality_profile": "showcase", "locale": "zh-CN", "viewBox": [1200, 380] },
+  "components": [
+    { "id": "main", "type": "frontend", "label": "main()", "sublabel": "argparse", "pos": [40, 150], "size": [120, 60] },
+    { "id": "chat", "type": "backend", "label": "chat", "sublabel": "对话", "pos": [220, 80], "size": [110, 55] },
+    { "id": "dl", "type": "backend", "label": "download", "sublabel": "Hub", "pos": [220, 160], "size": [110, 55] },
+    { "id": "serve", "type": "backend", "label": "serve", "sublabel": "FastAPI", "pos": [220, 240], "size": [110, 55] },
+    { "id": "fastapi", "type": "external", "label": "FastAPI", "sublabel": "外部", "pos": [400, 240], "size": [130, 55] }
+  ],
+  "connections": [
+    { "id": "m-chat", "from": "main", "to": "chat" },
+    { "id": "m-dl", "from": "main", "to": "dl" },
+    { "id": "m-serve", "from": "main", "to": "serve" },
+    { "id": "serve-fa", "from": "serve", "to": "fastapi" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "CLI 子命令", "items": [
+      "chat: 命令行多模型对话",
+      "download: 从 Hub 拉取模型",
+      "serve: OpenAI 兼容推理服务"
+    ]}
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "AutoConfig.from_pretrained 加载时序",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1280, 900],
+    "column_fit": "spread"
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "用户" },
+    { "id": "ac", "type": "backend", "label": "AutoConfig" },
+    { "id": "pc", "type": "backend", "label": "配置基类" },
+    { "id": "cf", "type": "cloud", "label": "HF Hub" },
+    { "id": "map", "type": "backend", "label": "注册表" },
+    { "id": "cls", "type": "backend", "label": "具体配置类" }
+  ],
+  "segments": [
+    { "from": 200, "to": 340, "label": "阶段一：定位文件" },
+    { "from": 360, "to": 540, "label": "阶段二：读取解析" },
+    { "from": 560, "to": 820, "label": "阶段三：选类实例化" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "user", "to": "ac", "y": 210, "label": "from_pretrained", "variant": "emphasis" },
+    { "id": "m2", "from": "ac", "to": "pc", "y": 260, "label": "get_config_dict", "variant": "emphasis" },
+    { "id": "m3", "from": "pc", "to": "cf", "y": 300, "label": "cached_file", "variant": "dashed" },
+    { "id": "m4", "from": "cf", "to": "pc", "y": 330, "label": "resolved_file", "variant": "return" },
+    { "id": "m5", "from": "pc", "to": "cls", "y": 400, "label": "读 JSON 并解码特殊浮点", "variant": "dashed" },
+    { "id": "m6", "from": "pc", "to": "ac", "y": 450, "label": "config_dict", "variant": "return" },
+    { "id": "m7", "from": "ac", "to": "map", "y": 500, "label": "CONFIG_MAPPING[model_type]", "variant": "emphasis" },
+    { "id": "m8", "from": "map", "to": "cls", "y": 590, "label": "惰性 import 配置类", "variant": "dashed" },
+    { "id": "m9", "from": "ac", "to": "cls", "y": 660, "label": "from_dict 实例化", "variant": "emphasis" },
+    { "id": "m10", "from": "cls", "to": "ac", "y": 720, "label": "__post_init__ 完成", "variant": "dashed" },
+    { "id": "m11", "from": "cls", "to": "ac", "y": 770, "label": "config 实例", "variant": "return" },
+    { "id": "m12", "from": "ac", "to": "user", "y": 810, "label": "配置对象", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "ac", "from": 210, "to": 810, "type": "backend" },
+    { "participant": "pc", "from": 260, "to": 450, "type": "backend" },
+    { "participant": "cls", "from": 660, "to": 770, "type": "backend" }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "multimodal-processing 组件与边界",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1280, 520]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户", "sublabel": "processor(text, images)", "pos": [60, 200], "size": [180, 60] },
+    { "id": "mixin", "type": "backend", "label": "ProcessorMixin", "sublabel": "processing_utils.py", "pos": [360, 200], "size": [200, 60], "tag": "基类" },
+    { "id": "img", "type": "backend", "label": "ImageProcessor", "sublabel": "image_processing_utils.py", "pos": [660, 80], "size": [200, 60] },
+    { "id": "feat", "type": "backend", "label": "FeatureExtractor", "sublabel": "feature_extraction_utils.py", "pos": [660, 200], "size": [200, 60] },
+    { "id": "audio", "type": "backend", "label": "Audio 工具", "sublabel": "audio_utils.py", "pos": [660, 320], "size": [200, 60] },
+    { "id": "video", "type": "backend", "label": "Video 工具", "sublabel": "video_utils.py", "pos": [960, 320], "size": [200, 60] },
+    { "id": "imgutils", "type": "backend", "label": "image_utils", "sublabel": "校验/批处理", "pos": [960, 80], "size": [200, 60] },
+    { "id": "pil", "type": "cloud", "label": "PIL/torchvision/librosa", "sublabel": "外部", "pos": [960, 200], "size": [220, 60], "tag": "外部" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "tokenization-processing / multimodal-processing", "wraps": ["mixin", "img", "feat", "audio", "video", "imgutils"] }
+  ],
+  "connections": [
+    { "id": "u-m", "from": "user", "to": "mixin", "label": "调用", "variant": "emphasis" },
+    { "id": "m-img", "from": "mixin", "to": "img", "label": "图像" },
+    { "id": "m-feat", "from": "mixin", "to": "feat", "label": "特征" },
+    { "id": "m-audio", "from": "mixin", "to": "audio", "label": "音频" },
+    { "id": "img-iu", "from": "img", "to": "imgutils", "label": "校验" },
+    { "id": "img-pil", "from": "img", "to": "pil", "label": "PIL/torchvision", "variant": "dashed" },
+    { "id": "audio-pil", "from": "audio", "to": "pil", "label": "librosa", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "要点", "items": [
+      "ProcessorMixin 统一 text+image+audio+video 输入",
+      "ImageProcessor 做 resize/normalize/to_tensor",
+      "音频按 torchcodec/librosa/soundfile 后端自动选",
+      "输出 BatchFeature 喂给多模态模型 forward"
+    ]}
+  ]
+}

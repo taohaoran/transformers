@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "AutoModel.from_pretrained 动态分发时序",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1200, 820],
+    "column_fit": "spread"
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "用户", "sublabel": "调用方" },
+    { "id": "auto", "type": "backend", "label": "Auto 工厂", "sublabel": "_BaseAutoModelClass" },
+    { "id": "cfg", "type": "backend", "label": "AutoConfig", "sublabel": "读 config.json" },
+    { "id": "lazy", "type": "database", "label": "惰性映射", "sublabel": "_LazyAutoMapping" },
+    { "id": "mod", "type": "cloud", "label": "模型包", "sublabel": "models/<family>" },
+    { "id": "hub", "type": "external", "label": "HF Hub", "sublabel": "权重/配置" }
+  ],
+  "segments": [
+    { "from": 150, "to": 270, "label": "阶段一：定位 config" },
+    { "from": 280, "to": 470, "label": "阶段二：解析 model_type / auto_map" },
+    { "from": 480, "to": 760, "label": "阶段三：惰性加载并实例化" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "user", "to": "auto", "y": 165, "label": "from_pretrained(id)", "variant": "emphasis" },
+    { "id": "m2", "from": "auto", "to": "hub", "y": 205, "label": "cached_file(config.json)" },
+    { "id": "m3", "from": "auto", "to": "cfg", "y": 245, "label": "读 model_type" },
+    { "id": "m4", "from": "cfg", "to": "hub", "y": 285, "label": "get_config_dict" },
+    { "id": "m5", "from": "cfg", "to": "auto", "y": 325, "label": "返回 config", "variant": "return" },
+    { "id": "m6", "from": "auto", "to": "lazy", "y": 365, "label": "查 type(config) 是否在表中" },
+    { "id": "m7", "from": "lazy", "to": "mod", "y": 415, "label": "importlib.import_module", "variant": "emphasis" },
+    { "id": "m8", "from": "mod", "to": "lazy", "y": 460, "label": "取出模型类", "variant": "return" },
+    { "id": "m9", "from": "lazy", "to": "auto", "y": 505, "label": "按 architectures 选头", "variant": "return" },
+    { "id": "m10", "from": "auto", "to": "mod", "y": 560, "label": "XxxModel.from_pretrained", "variant": "emphasis" },
+    { "id": "m11", "from": "mod", "to": "hub", "y": 605, "label": "下载 safetensors" },
+    { "id": "m12", "from": "mod", "to": "auto", "y": 650, "label": "实例化模型", "variant": "return" },
+    { "id": "m13", "from": "auto", "to": "user", "y": 700, "label": "model", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "auto", "from": 165, "to": 700, "type": "backend" },
+    { "participant": "lazy", "from": 365, "to": 505, "type": "database" }
+  ]
+}

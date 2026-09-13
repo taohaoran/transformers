@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "tokenization-utils-base 组件与边界",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1280, 520]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户", "sublabel": "tokenizer(text)", "pos": [60, 200], "size": [170, 60] },
+    { "id": "base", "type": "backend", "label": "PreTrainedTokenizerBase", "sublabel": "tokenization_utils_base.py", "pos": [360, 200], "size": [220, 60], "tag": "基类" },
+    { "id": "batch", "type": "backend", "label": "BatchEncoding", "sublabel": "编码结果容器", "pos": [680, 80], "size": [200, 60] },
+    { "id": "fast", "type": "backend", "label": "PreTrainedTokenizerFast", "sublabel": "Rust tokenizers 绑定", "pos": [680, 200], "size": [200, 60] },
+    { "id": "conv", "type": "backend", "label": "慢→快转换器", "sublabel": "convert_slow_tokenizer.py", "pos": [680, 320], "size": [200, 60] },
+    { "id": "rust", "type": "cloud", "label": "Rust tokenizers", "sublabel": "外部", "pos": [980, 200], "size": [220, 60], "tag": "外部" },
+    { "id": "hub", "type": "cloud", "label": "HF Hub", "sublabel": "下载词表", "pos": [980, 320], "size": [220, 60], "tag": "外部" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "tokenization-processing / tokenization-utils-base", "wraps": ["base", "batch", "fast", "conv"] }
+  ],
+  "connections": [
+    { "id": "u-b", "from": "user", "to": "base", "label": "调用", "variant": "emphasis" },
+    { "id": "b-batch", "from": "base", "to": "batch", "label": "返回" },
+    { "id": "b-fast", "from": "base", "to": "fast", "label": "Fast 分支" },
+    { "id": "b-conv", "from": "base", "to": "conv", "label": "慢→快" },
+    { "id": "f-rust", "from": "fast", "to": "rust", "label": "FFI", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "要点", "items": [
+      "BatchEncoding 封装 input_ids/attention_mask",
+      "Fast tokenizer 通过 PyO3 绑定 Rust tokenizers",
+      "慢分词器经 Converter 自动转 Fast",
+      "apply_chat_template 用 Jinja2 渲染对话"
+    ]}
+  ]
+}

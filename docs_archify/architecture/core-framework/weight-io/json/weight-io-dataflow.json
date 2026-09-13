@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "权重加载数据流",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1280, 620]
+  },
+  "stages": [
+    { "label": "1. 定位文件" },
+    { "label": "2. 读权重" },
+    { "label": "3. 键名转换" },
+    { "label": "4. 写入模型" },
+    { "label": "5. 收尾" }
+  ],
+  "nodes": [
+    { "id": "hub", "type": "cloud", "label": "HF Hub", "sublabel": "cached_file", "stage": 0, "row": 0 },
+    { "id": "index", "type": "database", "label": "index.json", "sublabel": "分片索引", "stage": 0, "row": 1 },
+    { "id": "st", "type": "database", "label": "safetensors/bin", "sublabel": "权重文件", "stage": 1, "row": 0 },
+    { "id": "gguf", "type": "database", "label": "GGUF", "sublabel": "元数据", "stage": 1, "row": 1 },
+    { "id": "conv", "type": "backend", "label": "WeightConverter", "sublabel": "键名重命名", "stage": 2, "row": 0 },
+    { "id": "setparam", "type": "backend", "label": "set_param", "sublabel": "写回参数", "stage": 3, "row": 0 },
+    { "id": "model", "type": "backend", "label": "PreTrainedModel", "sublabel": "meta 实例", "stage": 4, "row": 0 },
+    { "id": "offload", "type": "database", "label": "磁盘 offload", "sublabel": "可选", "stage": 4, "row": 1 }
+  ],
+  "flows": [
+    { "from": "hub", "to": "index", "label": "下载索引", "variant": "dashed", "labelDy": 30 },
+    { "from": "hub", "to": "st", "label": "下载分片", "variant": "emphasis" },
+    { "from": "hub", "to": "gguf", "label": "GGUF 分支", "variant": "dashed" },
+    { "from": "st", "to": "conv", "label": "state_dict", "variant": "emphasis" },
+    { "from": "gguf", "to": "conv", "label": "张量", "variant": "dashed" },
+    { "from": "conv", "to": "setparam", "label": "重命名后张量", "variant": "emphasis" },
+    { "from": "setparam", "to": "model", "label": "参数赋值", "variant": "emphasis" },
+    { "from": "setparam", "to": "offload", "label": "offload", "variant": "dashed" }
+  ]
+}

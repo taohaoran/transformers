@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "连续批处理请求生命周期",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [900, 600]
+  },
+  "lanes": [
+    { "id": "main", "label": "请求流转" },
+    { "id": "term", "label": "终止" }
+  ],
+  "states": [
+    { "id": "pending", "type": "start", "label": "PENDING", "sublabel": "等待调度", "lane": "main", "col": 0 },
+    { "id": "prefill", "type": "active", "label": "PREFILLING", "sublabel": "处理 prompt", "lane": "main", "col": 1 },
+    { "id": "decoding", "type": "active", "label": "DECODING", "sublabel": "逐 token", "lane": "main", "col": 2 },
+    { "id": "finished", "type": "success", "label": "FINISHED", "sublabel": "EOS/max", "lane": "term", "col": 2 },
+    { "id": "failed", "type": "failure", "label": "FAILED", "sublabel": "错误", "lane": "term", "col": 0 }
+  ],
+  "transitions": [
+    { "from": "pending", "to": "prefill" },
+    { "from": "prefill", "to": "decoding" },
+    { "from": "decoding", "to": "finished", "variant": "emphasis" },
+    { "from": "decoding", "to": "failed", "variant": "security" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "调度语义", "items": [
+      "FIFO 或 PrefillFirst 策略",
+      "显存不足时换出到 CPU（见 MD）",
+      "异步批处理：请求可中途加入"
+    ]}
+  ]
+}

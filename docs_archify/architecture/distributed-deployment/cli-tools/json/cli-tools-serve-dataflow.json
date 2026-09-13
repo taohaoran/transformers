@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": { "title": "serve 推理请求数据流", "quality_profile": "showcase", "locale": "zh-CN", "viewBox": [1200, 400] },
+  "stages": [
+    { "label": "客户端" }, { "label": "FastAPI 路由" }, { "label": "ModelManager" }, { "label": "模型推理" }, { "label": "响应" }
+  ],
+  "nodes": [
+    { "id": "client", "type": "external", "label": "客户端", "sublabel": "OpenAI API", "stage": 0, "row": 0 },
+    { "id": "route", "type": "backend", "label": "路由", "sublabel": "server.py", "stage": 1, "row": 0 },
+    { "id": "mgr", "type": "backend", "label": "ModelManager", "sublabel": "模型加载", "stage": 2, "row": 0 },
+    { "id": "model", "type": "database", "label": "Pipeline", "sublabel": "推理", "stage": 3, "row": 0 },
+    { "id": "resp", "type": "frontend", "label": "JSON 响应", "sublabel": "OpenAI 格式", "stage": 4, "row": 0 }
+  ],
+  "flows": [
+    { "from": "client", "to": "route", "label": "POST", "variant": "emphasis" },
+    { "from": "route", "to": "mgr", "label": "请求" },
+    { "from": "mgr", "to": "model", "label": "pipe(input)" },
+    { "from": "model", "to": "resp", "label": "输出", "variant": "emphasis" }
+  ]
+}

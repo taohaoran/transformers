@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "weight-io 组件与边界",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1280, 520]
+  },
+  "components": [
+    { "id": "mu", "type": "external", "label": "modeling-utils", "sublabel": "加载链调用方", "pos": [60, 200], "size": [180, 60] },
+    { "id": "core", "type": "backend", "label": "权重转换核心", "sublabel": "core_model_loading.py", "pos": [360, 80], "size": [220, 60], "tag": "本叶子" },
+    { "id": "cache", "type": "backend", "label": "KV Cache 体系", "sublabel": "cache_utils.py", "pos": [360, 200], "size": [220, 60] },
+    { "id": "dyn", "type": "backend", "label": "远端代码加载", "sublabel": "dynamic_module_utils", "pos": [360, 320], "size": [220, 60] },
+    { "id": "gguf", "type": "backend", "label": "GGUF 加载", "sublabel": "gguf_pytorch_utils", "pos": [680, 80], "size": [220, 60] },
+    { "id": "hub", "type": "cloud", "label": "HF Hub", "sublabel": "下载缓存", "pos": [980, 200], "size": [220, 60], "tag": "外部" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "core-framework / weight-io", "wraps": ["core", "cache", "dyn", "gguf"] }
+  ],
+  "connections": [
+    { "id": "mu-core", "from": "mu", "to": "core", "label": "转换", "variant": "emphasis" },
+    { "id": "mu-cache", "from": "mu", "to": "cache", "label": "推理 cache" },
+    { "id": "mu-dyn", "from": "mu", "to": "dyn", "label": "远端类" },
+    { "id": "core-gguf", "from": "core", "to": "gguf", "label": "GGUF 分支" },
+    { "id": "core-hub", "from": "core", "to": "hub", "label": "下载/读权重", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "要点", "items": [
+      "WeightConverter 做键名重命名与张量变换",
+      "DynamicCache/StaticCache 两种推理 cache",
+      "trust_remote_code 经交互确认后加载远端类",
+      "低内存加载用 mmap + 子进程物化"
+    ]}
+  ]
+}

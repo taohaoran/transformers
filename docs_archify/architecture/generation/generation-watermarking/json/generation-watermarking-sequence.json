@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "水印注入单步流程",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [900, 650]
+  },
+  "participants": [
+    { "id": "proc", "type": "backend", "label": "WatermarkProc", "sublabel": "处理器" },
+    { "id": "rng", "type": "backend", "label": "RNG", "sublabel": "种子随机数" },
+    { "id": "vocab", "type": "database", "label": "词表", "sublabel": "V 个 token" },
+    { "id": "logits", "type": "external", "label": "模型 logits", "sublabel": "原始" }
+  ],
+  "segments": [
+    { "from": 160, "to": 340, "label": "种子与绿名单" },
+    { "from": 340, "to": 580, "label": "logits 偏置" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "proc", "to": "rng", "y": 180, "label": "set_seed(prev_tokens)", "variant": "emphasis" },
+    { "id": "m2", "from": "rng", "to": "proc", "y": 230, "label": "种子 RNG 就绪", "variant": "return" },
+    { "id": "m3", "from": "proc", "to": "vocab", "y": 280, "label": "randperm(V) 打乱词表", "variant": "default" },
+    { "id": "m4", "from": "vocab", "to": "proc", "y": 330, "label": "绿名单 = 前 γV 个 token", "variant": "return" },
+    { "id": "m5", "from": "proc", "to": "logits", "y": 400, "label": "scores[greenlist] += bias", "variant": "emphasis" },
+    { "id": "m6", "from": "logits", "to": "proc", "y": 460, "label": "偏置后 logits", "variant": "return" },
+    { "id": "m7", "from": "proc", "to": "rng", "y": 520, "label": "传入 argmax/multinomial", "variant": "default" }
+  ],
+  "activations": [
+    { "participant": "proc", "from": 180, "to": 520, "type": "backend" },
+    { "participant": "rng", "from": 180, "to": 230, "type": "backend" },
+    { "participant": "vocab", "from": 280, "to": 330, "type": "database" }
+  ]
+}

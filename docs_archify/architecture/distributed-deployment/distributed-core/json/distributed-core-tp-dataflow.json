@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "张量并行权重切分数据流",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1200, 600]
+  },
+  "stages": [
+    { "label": "原始权重" },
+    { "label": "DTensor 切分" },
+    { "label": "前向计算" },
+    { "label": "AllReduce" },
+    { "label": "完整输出" }
+  ],
+  "nodes": [
+    { "id": "w0", "type": "database", "label": "完整 Linear 权重", "sublabel": "rank0", "stage": 0, "row": 0 },
+    { "id": "w1", "type": "database", "label": "完整权重", "sublabel": "rank1", "stage": 0, "row": 1 },
+    { "id": "shard0", "type": "backend", "label": "Shard(dim=0)", "sublabel": "rank0 列块", "stage": 1, "row": 0 },
+    { "id": "shard1", "type": "backend", "label": "Shard(dim=0)", "sublabel": "rank1 列块", "stage": 1, "row": 1 },
+    { "id": "fwd0", "type": "backend", "label": "局部 GEMM", "sublabel": "rank0", "stage": 2, "row": 0 },
+    { "id": "fwd1", "type": "backend", "label": "局部 GEMM", "sublabel": "rank1", "stage": 2, "row": 1 },
+    { "id": "ar", "type": "messagebus", "label": "AllReduce", "sublabel": "跨 GPU", "stage": 3, "row": 0 },
+    { "id": "out", "type": "frontend", "label": "完整输出", "sublabel": "Replicate", "stage": 4, "row": 0 }
+  ],
+  "flows": [
+    { "from": "w0", "to": "shard0", "label": "distribute_tensor", "variant": "emphasis" },
+    { "from": "w1", "to": "shard1", "label": "distribute_tensor", "variant": "emphasis" },
+    { "from": "shard0", "to": "fwd0", "label": "local forward" },
+    { "from": "shard1", "to": "fwd1", "label": "local forward" },
+    { "from": "fwd0", "to": "ar", "label": "partial out" },
+    { "from": "fwd1", "to": "ar", "label": "partial out" },
+    { "from": "ar", "to": "out", "label": "sum", "variant": "emphasis" }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "TrainingArguments 参数体系",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "components": [
+    { "id": "cli", "type": "frontend", "label": "命令行/YAML", "sublabel": "用户输入", "pos": [40, 280], "size": [120, 56] },
+    { "id": "parser", "type": "backend", "label": "HfArgumentParser", "sublabel": "hf_argparser.py:111", "pos": [240, 280], "size": [140, 56] },
+    { "id": "args", "type": "database", "label": "TrainingArguments", "sublabel": "training_args.py:180", "pos": [460, 280], "size": [150, 56], "tag": "核心" },
+    { "id": "seq2seq", "type": "database", "label": "Seq2SeqArgs", "sublabel": "predict_with_generate", "pos": [460, 120], "size": [140, 56] },
+    { "id": "trainer", "type": "backend", "label": "Trainer", "sublabel": "消费参数", "pos": [720, 280], "size": [110, 56] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "参数定义（training_args.py）", "wraps": ["args", "seq2seq"] },
+    { "kind": "region", "label": "参数解析（hf_argparser.py）", "wraps": ["parser"] }
+  ],
+  "connections": [
+    { "id": "c-p", "from": "cli", "to": "parser", "fromSide": "right", "toSide": "left" },
+    { "id": "p-a", "from": "parser", "to": "args", "label": "解析", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "s-a", "from": "seq2seq", "to": "args", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "a-t", "from": "args", "to": "trainer", "fromSide": "right", "toSide": "left" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "参数分组", "items": [
+      "批次：batch_size × grad_accum",
+      "学习率：lr/warmup/scheduler_type",
+      "精度：fp16/bf16",
+      "策略：logging/eval/save"
+    ]},
+    { "dot": "cyan", "title": "解析方式", "items": [
+      "命令行 --per_device_train_batch_size",
+      "YAML/JSON 配置文件",
+      "Python 代码直接传参"
+    ]}
+  ]
+}

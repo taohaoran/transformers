@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "推测解码组件架构",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "views": [
+      { "id": "main", "label": "主路径", "focus": ["loop", "cand-gen", "target"], "note": "草稿生成→目标验证→接受/拒绝" }
+    ]
+  },
+  "components": [
+    { "id": "draft", "type": "external", "label": "草稿模型", "sublabel": "小模型", "pos": [260, 40], "size": [120, 56] },
+    { "id": "cand-gen", "type": "backend", "label": "CandGen", "sublabel": "候选生成器", "pos": [260, 160], "size": [120, 56] },
+    { "id": "prompt-lookup", "type": "backend", "label": "PromptLookup", "sublabel": "无草稿模型", "pos": [40, 280], "size": [130, 56] },
+    { "id": "loop", "type": "backend", "label": "assisted_loop", "sublabel": "主循环", "pos": [260, 280], "size": [130, 56], "tag": "核心" },
+    { "id": "target", "type": "external", "label": "目标模型", "sublabel": "批量验证", "pos": [490, 280], "size": [120, 56] },
+    { "id": "accept", "type": "backend", "label": "接受/拒绝", "sublabel": "argmax 比较", "pos": [710, 280], "size": [120, 56] },
+    { "id": "cache", "type": "database", "label": "KV Cache", "sublabel": "裁剪", "pos": [490, 400], "size": [120, 56] },
+    { "id": "strategy", "type": "backend", "label": "策略更新", "sublabel": "调整候选数", "pos": [710, 400], "size": [120, 56] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "推测解码（本叶子）", "wraps": ["loop", "cand-gen", "prompt-lookup", "accept", "strategy"] },
+    { "kind": "security-group", "label": "外部模型", "wraps": ["draft", "target", "cache"] }
+  ],
+  "connections": [
+    { "id": "loop-cg", "from": "loop", "to": "cand-gen", "label": "get_candidates", "variant": "emphasis", "fromSide": "top", "toSide": "bottom" },
+    { "id": "cg-draft", "from": "cand-gen", "to": "draft", "label": "生成", "fromSide": "top", "toSide": "bottom" },
+    { "id": "loop-pl", "from": "loop", "to": "prompt-lookup", "label": "n-gram", "fromSide": "left", "toSide": "right" },
+    { "id": "loop-target", "from": "loop", "to": "target", "label": "批量前向", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "target-accept", "from": "target", "to": "accept", "label": "比较", "fromSide": "right", "toSide": "left" },
+    { "id": "target-cache", "from": "target", "to": "cache", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "accept-strat", "from": "accept", "to": "strategy", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心算法", "items": [
+      "草稿生成 N 候选 → 目标一次前向验证",
+      "接受匹配前缀 + 1 个 bonus token",
+      "KV Cache crop 未接受 token"
+    ]},
+    { "dot": "cyan", "title": "候选策略", "items": [
+      "全匹配→候选数+2，否则-1",
+      "PromptLookup 无需草稿模型",
+      "USD/MTP 用目标模型自身"
+    ]}
+  ]
+}

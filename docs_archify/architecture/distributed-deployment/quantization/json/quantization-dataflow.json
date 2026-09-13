@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": { "title": "量化加载数据流", "quality_profile": "showcase", "locale": "zh-CN", "viewBox": [1200, 420] },
+  "stages": [
+    { "label": "用户请求" }, { "label": "配置解析" }, { "label": "量化包装" }, { "label": "权重加载" }, { "label": "就绪推理" }
+  ],
+  "nodes": [
+    { "id": "req", "type": "frontend", "label": "from_pretrained", "sublabel": "load_in_4bit", "stage": 0, "row": 0 },
+    { "id": "cfg", "type": "backend", "label": "QuantizationConfig", "sublabel": "解析配置", "stage": 1, "row": 0 },
+    { "id": "wrap", "type": "backend", "label": "量化包装", "sublabel": "create_model", "stage": 2, "row": 0 },
+    { "id": "load", "type": "backend", "label": "加载量化权重", "sublabel": "dequantize", "stage": 3, "row": 0 },
+    { "id": "ready", "type": "database", "label": "量化模型", "sublabel": "推理就绪", "stage": 4, "row": 0 }
+  ],
+  "flows": [
+    { "from": "req", "to": "cfg", "label": "kwargs", "variant": "emphasis" },
+    { "from": "cfg", "to": "wrap", "label": "选后端" },
+    { "from": "wrap", "to": "load", "label": "before hook" },
+    { "from": "load", "to": "ready", "label": "after hook", "variant": "emphasis" }
+  ]
+}

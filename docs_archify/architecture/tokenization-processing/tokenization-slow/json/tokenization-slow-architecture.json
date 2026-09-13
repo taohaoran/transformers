@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "tokenization-slow 组件与边界",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1280, 480]
+  },
+  "components": [
+    { "id": "base", "type": "external", "label": "TokenizerBase", "sublabel": "tokenization-utils-base", "pos": [60, 180], "size": [180, 60] },
+    { "id": "py", "type": "backend", "label": "PythonBackend", "sublabel": "tokenization_python.py", "pos": [360, 80], "size": [220, 60], "tag": "纯 Python" },
+    { "id": "sp", "type": "backend", "label": "SentencePieceBackend", "sublabel": "tokenization_utils_sp.py", "pos": [360, 200], "size": [220, 60] },
+    { "id": "mistral", "type": "backend", "label": "MistralCommonBackend", "sublabel": "tokenization_mistral_common.py", "pos": [360, 320], "size": [220, 60] },
+    { "id": "trie", "type": "backend", "label": "Trie 前缀树", "sublabel": "加速不拆分 token", "pos": [680, 80], "size": [200, 60] },
+    { "id": "sp-lib", "type": "cloud", "label": "sentencepiece", "sublabel": "C++ 库（外部）", "pos": [680, 200], "size": [200, 60], "tag": "外部" },
+    { "id": "mistral-lib", "type": "cloud", "label": "mistral-common", "sublabel": "Python 库（外部）", "pos": [680, 320], "size": [200, 60], "tag": "外部" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "tokenization-processing / tokenization-slow", "wraps": ["py", "sp", "mistral", "trie"] }
+  ],
+  "connections": [
+    { "id": "b-py", "from": "base", "to": "py", "label": "继承", "variant": "emphasis" },
+    { "id": "b-sp", "from": "base", "to": "sp", "label": "继承" },
+    { "id": "b-mistral", "from": "base", "to": "mistral", "label": "继承" },
+    { "id": "py-trie", "from": "py", "to": "trie", "label": "查询" },
+    { "id": "sp-lib", "from": "sp", "to": "sp-lib", "label": "FFI", "variant": "dashed" },
+    { "id": "mistral-lib", "from": "mistral", "to": "mistral-lib", "label": "调用", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "要点", "items": [
+      "PythonBackend 用 Trie 加速不拆分 token",
+      "SentencePieceBackend 包装 C++ spm 库",
+      "MistralBackend 按 tekken/spm/tiktoken 分派",
+      "慢分词器可经 Converter 转 Fast"
+    ]}
+  ]
+}

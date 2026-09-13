@@ -1,0 +1,78 @@
+# GitHub Pages 部署 workflow 模板（GitHub Actions 发布源）
+# 用法: 复制到 .github/workflows/pages.yml，替换占位符：
+#   Deploy transformers docs to GitHub Pages    工作流名称（显示在 Actions 页面）
+#   feat-docs-archify-20260913           触发部署的分支（如 feat-docs-archify-20260912 或 main）
+#   docs              回退部署目录（如 docs；根目录用 .）
+#   Transformers 架构文档        可选：站点名（导览标题/面包屑/页脚/页面标题），默认 "架构文档"
+#   architecture=架构      可选：MD 渲染分组标签，如 "core=核心|ai=智能"
+# 内容源优先级（核心行为）:
+#   1) 存在 <部署目录>-archify / <部署目录>_archify（二者都有时前者优先）→ 站点内容严格等于该源目录内容，
+#      不混入 <部署目录> 的任何内容；
+#   2) 确实不存在任何 archify 内容源 → 回退部署 <部署目录>。
+#   archify 内容源必须提交进仓库（否则运行器检出后看不到，会静默回退到 <部署目录>）；其变更（push）同样触发部署。
+# 导览与渲染强制（所有分支统一执行，不可省略）:
+#   - 选源后固定运行 scripts/build-docs-html.py site/ —— 该脚本必须已入库：
+#       a) md 默认转 html：递归渲染所有 .md → 同名 .html（.md 保留为源，相对 .md 链接改写为 .html）
+#       b) 强制生成导览 index.md：链接全部 .md 与全部 .html（md 条目指向渲染后的 .html），
+#          渲染为 index.html 作为站点根入口，保证无孤儿页面
+#   - 构建统一输出到独立 site/ 目录（不修改源目录），并写入 .nojekyll
+# 注意: 非默认分支部署需在 github-pages 环境放行该分支（scripts/deploy-pages.sh 自动处理）。
+name: Deploy transformers docs to GitHub Pages
+
+on:
+  push:
+    branches: [feat-docs-archify-20260913]
+    paths:
+      - 'docs/**'
+      - 'docs-archify/**'
+      - 'docs_archify/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      # ---- 内容源选择：archify 源存在则严格按它部署，否则回退 docs ----
+      - name: Build site content (archify source priority)
+        run: |
+          set -euo pipefail
+          rm -rf site && mkdir -p site
+          if [ -d "docs-archify" ] || [ -d "docs_archify" ]; then
+            SRC=""
+            if [ -d "docs-archify" ]; then SRC="docs-archify"; else SRC="docs_archify"; fi
+            echo "==> $SRC found -> deploying its content strictly"
+            cp -R "$SRC/." site/
+          else
+            echo "==> no archify source dir found -> deploying docs"
+            cp -R docs/. site/
+          fi
+          # ---- md 默认转 html + 强制生成导览 index.md（链接全部 md 与 html）并渲染为 index.html ----
+          pip install --quiet markdown
+          python3 scripts/build-docs-html.py site --site-name "Transformers 架构文档" --group-label "architecture=架构"
+          touch site/.nojekyll
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

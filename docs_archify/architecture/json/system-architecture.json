@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "HuggingFace Transformers 系统架构图",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1300, 720]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户 / 应用", "sublabel": "Python API", "pos": [40, 280], "size": [130, 60] },
+    { "id": "entry", "type": "backend", "label": "入口层", "sublabel": "pipelines + cli-tools", "pos": [220, 280], "size": [150, 60] },
+    { "id": "generation", "type": "backend", "label": "generation 域", "sublabel": "生成循环/推测解码/水印/连续批处理", "pos": [420, 130], "size": [170, 60] },
+    { "id": "trainer", "type": "backend", "label": "trainer-training 域", "sublabel": "Trainer/优化器/参数/数据整理", "pos": [420, 430], "size": [170, 60] },
+    { "id": "core", "type": "database", "label": "core-framework 域", "sublabel": "配置/模型基类/层构建块/权重IO", "pos": [640, 280], "size": [170, 60] },
+    { "id": "models", "type": "database", "label": "models-registry 域", "sublabel": "Auto注册/modular/516模型家族", "pos": [860, 130], "size": [170, 60] },
+    { "id": "tokenization", "type": "database", "label": "tokenization-processing 域", "sublabel": "分词器基类/慢分词/多模态处理", "pos": [860, 430], "size": [170, 60] },
+    { "id": "distributed", "type": "backend", "label": "distributed-deployment 域", "sublabel": "分布式/集成/导出/量化", "pos": [1080, 280], "size": [170, 60] },
+    { "id": "hub", "type": "backend", "label": "hub-utils 域", "sublabel": "Hub交互/通用工具", "pos": [640, 580], "size": [170, 56] },
+    { "id": "pytorch", "type": "external", "label": "PyTorch / TF / JAX", "sublabel": "深度学习框架", "pos": [860, 580], "size": [170, 56] },
+    { "id": "hfhub", "type": "external", "label": "HF Hub 远端", "sublabel": "模型仓库+HTTP API", "pos": [1080, 580], "size": [170, 56] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "transformers 包内部（src/transformers/）", "wraps": ["entry", "generation", "trainer", "core", "models", "tokenization", "distributed", "hub"], "pad": 16 }
+  ],
+  "connections": [
+    { "id": "u-e", "from": "user", "to": "entry", "label": "API 调用", "variant": "emphasis", "route": "straight" },
+    { "id": "e-g", "from": "entry", "to": "generation", "label": "文本生成", "route": "orthogonal-h", "labelAt": [360, 200] },
+    { "id": "e-t", "from": "entry", "to": "trainer", "label": "训练任务", "route": "orthogonal-h", "labelAt": [360, 390] },
+    { "id": "e-core", "from": "entry", "to": "core", "label": "模型推理", "variant": "emphasis", "route": "straight", "labelAt": [510, 260] },
+    { "id": "g-core", "from": "generation", "to": "core", "label": "forward/KV Cache", "variant": "emphasis", "route": "orthogonal-v", "labelAt": [570, 220] },
+    { "id": "g-models", "from": "generation", "to": "models", "label": "模型实例", "route": "straight", "labelAt": [720, 110] },
+    { "id": "t-core", "from": "trainer", "to": "core", "label": "训练循环", "variant": "emphasis", "route": "orthogonal-v", "labelAt": [570, 390] },
+    { "id": "core-models", "from": "core", "to": "models", "label": "基类继承", "route": "orthogonal-h", "labelAt": [770, 200] },
+    { "id": "core-tok", "from": "core", "to": "tokenization", "label": "分词映射", "route": "orthogonal-h", "labelAt": [770, 400] },
+    { "id": "core-hub", "from": "core", "to": "hub", "label": "权重下载", "route": "orthogonal-v", "labelAt": [690, 480] },
+    { "id": "core-pt", "from": "core", "to": "pytorch", "label": "nn.Module", "variant": "dashed", "route": "orthogonal-v", "fromSide": "bottom", "toSide": "top", "via": [[725, 470], [725, 520], [945, 520], [945, 580]], "labelAt": [820, 505] },
+    { "id": "hub-hf", "from": "hub", "to": "hfhub", "label": "HTTP API", "variant": "dashed", "route": "orthogonal-h", "fromSide": "bottom", "toSide": "bottom", "via": [[725, 660], [1165, 660]], "labelAt": [940, 645] },
+    { "id": "tok-ext", "from": "tokenization", "to": "pytorch", "label": "张量输出", "variant": "dashed", "route": "orthogonal-v", "fromSide": "bottom", "toSide": "top", "via": [[945, 490], [945, 520], [945, 580]], "labelAt": [970, 510] }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "系统定位", "items": [
+      "State-of-the-art ML for JAX, PyTorch, TensorFlow",
+      "3019 个 .py 文件，约 123.5 万行",
+      "516 个模型家族，覆盖文本/图像/音频/多模态"
+    ]},
+    { "dot": "amber", "title": "8 域 32 叶子", "items": [
+      "core(4) tokenization(3) models(8) generation(4)",
+      "trainer(4) pipelines(2) distributed(5) hub(2)"
+    ]}
+  ]
+}

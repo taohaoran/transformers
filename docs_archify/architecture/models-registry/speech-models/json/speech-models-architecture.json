@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "语音模型架构（Whisper / SeamlessM4T / EnCodec）",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1200, 700]
+  },
+  "components": [
+    { "id": "audio", "type": "external", "label": "原始音频", "sublabel": "波形 / log-mel", "pos": [60, 90], "size": [190, 60] },
+    { "id": "whispenc", "type": "backend", "label": "Whisper encoder", "sublabel": "log-mel → 双向注意力", "pos": [390, 90], "size": [230, 64] },
+    { "id": "whispdec", "type": "backend", "label": "Whisper decoder", "sublabel": "因果 + cross-attn 出文本", "pos": [760, 90], "size": [230, 64], "tag": "多语言 ASR" },
+    { "id": "sm4t", "type": "backend", "label": "SeamlessM4T", "sublabel": "Conformer enc + 语音/文本多模态", "pos": [390, 280], "size": [230, 70] },
+    { "id": "encenc", "type": "backend", "label": "EnCodec encoder", "sublabel": "Conv1d 下采样", "pos": [60, 480], "size": [200, 64] },
+    { "id": "quant", "type": "security", "label": "EnCodec quantizer", "sublabel": "残差向量量化", "pos": [390, 480], "size": [230, 64], "tag": "音频 token" },
+    { "id": "encdec", "type": "backend", "label": "EnCodec decoder", "sublabel": "ConvTranspose 重建波形", "pos": [760, 480], "size": [230, 64] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Whisper 语音识别", "wraps": ["audio", "whispenc", "whispdec"] },
+    { "kind": "region", "label": "EnCodec 神经音频编解码", "wraps": ["encenc", "quant", "encdec"] }
+  ],
+  "connections": [
+    { "id": "a-we", "from": "audio", "to": "whispenc", "label": "log-mel", "variant": "emphasis", "labelDy": 24 },
+    { "id": "we-wd", "from": "whispenc", "to": "whispdec", "label": "encoder_outputs", "variant": "emphasis", "labelDy": 24 },
+    { "id": "a-sm", "from": "audio", "to": "sm4t", "label": "音频", "labelDy": 24 },
+    { "id": "e-q", "from": "encenc", "to": "quant", "label": "特征", "variant": "emphasis", "labelDy": 24 },
+    { "id": "q-d", "from": "quant", "to": "encdec", "label": "编码", "variant": "emphasis", "labelDy": 24 }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "语音家族共性", "items": [
+      "输入 log-mel 谱 / 波形，非文本 token",
+      "Whisper 是 encoder-decoder ASR",
+      "EnCodec 把音频编成离散 token 再重建"
+    ]}
+  ]
+}

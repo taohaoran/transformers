@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": { "title": "通用工具组件架构", "quality_profile": "showcase", "locale": "zh-CN", "viewBox": [1200, 300] },
+  "components": [
+    { "id": "logging", "type": "backend", "label": "logging.py", "sublabel": "get_logger", "pos": [40, 100], "size": [130, 60] },
+    { "id": "importu", "type": "backend", "label": "import_utils", "sublabel": "is_*_available", "pos": [220, 100], "size": [130, 60] },
+    { "id": "generic", "type": "backend", "label": "generic.py", "sublabel": "上下文管理", "pos": [400, 100], "size": [130, 60] },
+    { "id": "chat", "type": "backend", "label": "chat_template", "sublabel": "Jinja2", "pos": [580, 100], "size": [130, 60] },
+    { "id": "user", "type": "frontend", "label": "transformers 各模块", "sublabel": "上层调用", "pos": [780, 100], "size": [170, 60] }
+  ],
+  "connections": [
+    { "id": "l-i", "from": "logging", "to": "importu" },
+    { "id": "i-g", "from": "importu", "to": "generic" },
+    { "id": "g-c", "from": "generic", "to": "chat" },
+    { "id": "c-u", "from": "chat", "to": "user" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "工具层职责", "items": [
+      "logging: 统一 logger + tqdm 集成",
+      "import_utils: 50+ 可选依赖检测",
+      "chat_template: Jinja2 对话模板渲染"
+    ]}
+  ]
+}

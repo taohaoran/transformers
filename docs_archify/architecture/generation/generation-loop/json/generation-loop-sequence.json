@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "generate() 调度与 _sample 循环时序",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1000, 950]
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "model.generate()" },
+    { "id": "gen", "type": "backend", "label": "generate()", "sublabel": "调度入口" },
+    { "id": "config", "type": "database", "label": "GenConfig", "sublabel": "参数体系" },
+    { "id": "prep", "type": "backend", "label": "准备链", "sublabel": "输入/Cache/处理器" },
+    { "id": "sample", "type": "backend", "label": "_sample 循环", "sublabel": "解码核心" },
+    { "id": "model", "type": "external", "label": "模型 forward", "sublabel": "外部" }
+  ],
+  "segments": [
+    { "from": 160, "to": 400, "label": "阶段1：配置与输入准备" },
+    { "from": 400, "to": 560, "label": "阶段2：Prefill" },
+    { "from": 560, "to": 880, "label": "阶段3：自回归解码循环" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "user", "to": "gen", "y": 180, "label": "generate(input_ids, **kwargs)", "variant": "emphasis" },
+    { "id": "m2", "from": "gen", "to": "config", "y": 220, "label": "_prepare_generation_config()", "variant": "default" },
+    { "id": "m3", "from": "config", "to": "gen", "y": 260, "label": "generation_mode = greedy/sample/beam", "variant": "return" },
+    { "id": "m4", "from": "gen", "to": "prep", "y": 300, "label": "准备输入/Cache/处理器链", "variant": "default" },
+    { "id": "m5", "from": "prep", "to": "gen", "y": 340, "label": "model_kwargs + 处理器就绪", "variant": "return" },
+    { "id": "m6", "from": "gen", "to": "sample", "y": 380, "label": "decoding_method(input_ids, ...)", "variant": "emphasis" },
+    { "id": "m7", "from": "sample", "to": "model", "y": 430, "label": "_prefill() 首次前向", "variant": "default" },
+    { "id": "m8", "from": "model", "to": "sample", "y": 480, "label": "logits + 初始化 KV Cache", "variant": "return" },
+    { "id": "m9", "from": "sample", "to": "model", "y": 540, "label": "单 token 前向（利用 KV Cache）", "variant": "emphasis" },
+    { "id": "m10", "from": "model", "to": "sample", "y": 590, "label": "logits[:,-1] + 更新 Cache", "variant": "return" },
+    { "id": "m11", "from": "sample", "to": "prep", "y": 650, "label": "logits_processor 链变换", "variant": "default" },
+    { "id": "m12", "from": "prep", "to": "sample", "y": 690, "label": "处理后 scores", "variant": "return" },
+    { "id": "m13", "from": "sample", "to": "config", "y": 740, "label": "stopping_criteria 检查", "variant": "default" },
+    { "id": "m14", "from": "config", "to": "sample", "y": 780, "label": "未完成→继续循环 / 完成→退出", "variant": "return" },
+    { "id": "m15", "from": "sample", "to": "gen", "y": 820, "label": "返回 sequences", "variant": "return" },
+    { "id": "m16", "from": "gen", "to": "user", "y": 860, "label": "GenerateOutput", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "gen", "from": 180, "to": 890, "type": "backend" },
+    { "participant": "sample", "from": 380, "to": 840, "type": "backend" },
+    { "participant": "model", "from": 430, "to": 480, "type": "external" },
+    { "participant": "model", "from": 540, "to": 590, "type": "external" }
+  ]
+}

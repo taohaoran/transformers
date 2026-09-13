@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": { "title": "框架集成生态架构", "quality_profile": "showcase", "locale": "zh-CN", "viewBox": [1200, 400] },
+  "components": [
+    { "id": "trainer", "type": "frontend", "label": "Trainer", "sublabel": "训练主循环", "pos": [40, 160], "size": [120, 60] },
+    { "id": "detect", "type": "backend", "label": "is_*_available", "sublabel": "集成检测", "pos": [220, 160], "size": [130, 60] },
+    { "id": "track", "type": "backend", "label": "实验追踪", "sublabel": "wandb/tb", "pos": [410, 160], "size": [130, 60] },
+    { "id": "ds", "type": "backend", "label": "DeepSpeed", "sublabel": "deepspeed.py", "pos": [410, 60], "size": [130, 55] },
+    { "id": "peft", "type": "backend", "label": "PEFT", "sublabel": "peft.py", "pos": [410, 270], "size": [130, 55] },
+    { "id": "fa", "type": "backend", "label": "Flash Attn", "sublabel": "flash_attn", "pos": [600, 160], "size": [130, 60] },
+    { "id": "hw", "type": "external", "label": "硬件后端", "sublabel": "TPU/Neuron", "pos": [790, 160], "size": [140, 60] }
+  ],
+  "connections": [
+    { "id": "t-d", "from": "trainer", "to": "detect" },
+    { "id": "d-track", "from": "detect", "to": "track" },
+    { "id": "d-ds", "from": "detect", "to": "ds" },
+    { "id": "d-peft", "from": "detect", "to": "peft" },
+    { "id": "d-fa", "from": "track", "to": "fa" },
+    { "id": "fa-hw", "from": "fa", "to": "hw" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "集成模式", "items": [
+      "统一 is_xxx_available 检测 + 延迟导入",
+      "TrainerCallback 子类接入实验追踪",
+      "可选依赖缺失时优雅降级 warning"
+    ]}
+  ]
+}

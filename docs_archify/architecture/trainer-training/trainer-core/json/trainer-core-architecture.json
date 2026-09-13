@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Trainer 核心组件架构",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "实例化 Trainer", "pos": [40, 280], "size": [120, 56] },
+    { "id": "trainer", "type": "backend", "label": "Trainer", "sublabel": "trainer.py:259", "pos": [240, 280], "size": [120, 56], "tag": "核心" },
+    { "id": "cb", "type": "backend", "label": "CallbackHandler", "sublabel": "回调分发", "pos": [240, 100], "size": [130, 56] },
+    { "id": "state", "type": "database", "label": "TrainerState", "sublabel": "训练状态", "pos": [240, 460], "size": [120, 56] },
+    { "id": "model", "type": "backend", "label": "模型", "sublabel": "forward+backward", "pos": [460, 280], "size": [110, 56] },
+    { "id": "opt", "type": "backend", "label": "Optimizer", "sublabel": "优化器", "pos": [660, 180], "size": [110, 56] },
+    { "id": "sched", "type": "backend", "label": "LRScheduler", "sublabel": "学习率调度", "pos": [660, 300], "size": [120, 56] },
+    { "id": "accel", "type": "external", "label": "Accelerate", "sublabel": "分布式封装", "pos": [660, 440], "size": [120, 56] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Trainer（本叶子）", "wraps": ["trainer", "cb", "state", "model"] },
+    { "kind": "security-group", "label": "外部", "wraps": ["user", "accel", "opt", "sched"] }
+  ],
+  "connections": [
+    { "id": "u-t", "from": "user", "to": "trainer", "fromSide": "right", "toSide": "left" },
+    { "id": "t-cb", "from": "trainer", "to": "cb", "fromSide": "top", "toSide": "bottom" },
+    { "id": "t-st", "from": "trainer", "to": "state", "fromSide": "bottom", "toSide": "top" },
+    { "id": "t-m", "from": "trainer", "to": "model", "label": "forward/backward", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "t-opt", "from": "trainer", "to": "opt", "variant": "dashed", "fromSide": "right", "toSide": "left" },
+    { "id": "t-sched", "from": "trainer", "to": "sched", "variant": "dashed", "fromSide": "right", "toSide": "left" },
+    { "id": "t-acc", "from": "trainer", "to": "accel", "variant": "dashed", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "核心流程", "items": [
+      "train() → _inner_training_loop()",
+      "epoch → step → forward/backward",
+      "梯度累积 → optimizer.step()"
+    ]},
+    { "dot": "cyan", "title": "回调系统", "items": [
+      "15+ 个 on_* 钩子",
+      "CallbackHandler 统一分发",
+      "TrainerControl 控制训练终止"
+    ]}
+  ]
+}

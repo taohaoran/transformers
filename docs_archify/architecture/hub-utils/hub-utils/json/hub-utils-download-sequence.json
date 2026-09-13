@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": { "title": "cached_file 下载时序", "quality_profile": "showcase", "locale": "zh-CN", "viewBox": [1100, 680] },
+  "participants": [
+    { "id": "caller", "type": "external", "label": "调用方", "sublabel": "" },
+    { "id": "cached", "type": "backend", "label": "cached_file", "sublabel": "hub.py" },
+    { "id": "cache", "type": "database", "label": "本地缓存", "sublabel": "" },
+    { "id": "hub", "type": "cloud", "label": "HF Hub", "sublabel": "远端" }
+  ],
+  "segments": [
+    { "from": 190, "to": 300, "label": "缓存查询" },
+    { "from": 300, "to": 500, "label": "网络下载" },
+    { "from": 500, "to": 620, "label": "返回本地路径" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "caller", "to": "cached", "y": 200, "label": "cached_file(model_id, filename)", "variant": "emphasis" },
+    { "id": "m2", "from": "cached", "to": "cache", "y": 250, "label": "查缓存是否存在" },
+    { "id": "m3", "from": "cache", "to": "cached", "y": 280, "label": "miss / hit", "variant": "return" },
+    { "id": "m4", "from": "cached", "to": "hub", "y": 340, "label": "HTTP GET + token", "variant": "emphasis" },
+    { "id": "m5", "from": "hub", "to": "cached", "y": 400, "label": "文件流 + ETag", "variant": "return" },
+    { "id": "m6", "from": "cached", "to": "cache", "y": 460, "label": "写入缓存（锁）" },
+    { "id": "m7", "from": "cached", "to": "caller", "y": 540, "label": "本地文件路径", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "cached", "from": 200, "to": 540, "type": "backend" }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "tokenizer(text) 编码时序",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1280, 720],
+    "column_fit": "spread"
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "用户" },
+    { "id": "base", "type": "backend", "label": "TokenizerBase" },
+    { "id": "fast", "type": "backend", "label": "Fast 分词器" },
+    { "id": "rust", "type": "cloud", "label": "Rust tokenizers" },
+    { "id": "batch", "type": "backend", "label": "BatchEncoding" }
+  ],
+  "segments": [
+    { "from": 170, "to": 280, "label": "入口" },
+    { "from": 300, "to": 440, "label": "Fast 编码" },
+    { "from": 460, "to": 600, "label": "封装返回" }
+  ],
+  "messages": [
+    { "id": "m1", "from": "user", "to": "base", "y": 180, "label": "tokenizer(text)", "variant": "emphasis" },
+    { "id": "m2", "from": "base", "to": "fast", "y": 230, "label": "__call__", "variant": "emphasis" },
+    { "id": "m3", "from": "fast", "to": "rust", "y": 330, "label": "encode_batch", "variant": "dashed" },
+    { "id": "m4", "from": "rust", "to": "fast", "y": 390, "label": "EncodingFast", "variant": "return" },
+    { "id": "m5", "from": "fast", "to": "batch", "y": 490, "label": "包装" },
+    { "id": "m6", "from": "batch", "to": "base", "y": 540, "label": "BatchEncoding", "variant": "return" },
+    { "id": "m7", "from": "base", "to": "user", "y": 590, "label": "input_ids", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "base", "from": 180, "to": 590, "type": "backend" },
+    { "participant": "fast", "from": 230, "to": 490, "type": "backend" }
+  ]
+}

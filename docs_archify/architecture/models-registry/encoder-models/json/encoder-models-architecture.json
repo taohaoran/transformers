@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Encoder 类模型家族架构（以 BERT 为代表）",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1200, 760]
+  },
+  "components": [
+    { "id": "embed", "type": "backend", "label": "BertEmbeddings", "sublabel": "token+position+token_type 嵌入", "pos": [60, 70], "size": [240, 64] },
+    { "id": "layer", "type": "backend", "label": "BertLayer ×N", "sublabel": "encoder 堆叠层", "pos": [440, 70], "size": [220, 64], "tag": "GradientCheckpointingLayer" },
+    { "id": "attn", "type": "backend", "label": "BertSelfAttention", "sublabel": "双向自注意力", "pos": [440, 230], "size": [220, 60] },
+    { "id": "attnout", "type": "backend", "label": "BertSelfOutput", "sublabel": "残差+LayerNorm", "pos": [440, 360], "size": [220, 56] },
+    { "id": "ffn", "type": "backend", "label": "Intermediate+Output", "sublabel": "FFN 残差+LN", "pos": [440, 480], "size": [220, 56] },
+    { "id": "pooler", "type": "backend", "label": "BertPooler", "sublabel": "取[CLS]+tanh", "pos": [860, 70], "size": [220, 60] },
+    { "id": "heads", "type": "database", "label": "任务头族", "sublabel": "MaskedLM/SeqCls/TokCls/QA", "pos": [860, 230], "size": [220, 64], "tag": "同一 backbone 多头" },
+    { "id": "disc", "type": "security", "label": "ELECTRA 判别器", "sublabel": "生成器-判别器架构", "pos": [860, 400], "size": [220, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "BertEncoder（堆叠 N 层）", "wraps": ["layer", "attn", "attnout", "ffn"] }
+  ],
+  "connections": [
+    { "id": "e-l", "from": "embed", "to": "layer", "label": "hidden_states", "variant": "emphasis", "labelDy": 26 },
+    { "id": "l-attn", "from": "layer", "to": "attn", "label": "层内", "labelDy": 24 },
+    { "id": "attn-out", "from": "attn", "to": "attnout", "label": "残差LN", "labelDy": 22 },
+    { "id": "out-ffn", "from": "attnout", "to": "ffn", "label": "FFN", "labelDy": 22 },
+    { "id": "l-pool", "from": "layer", "to": "pooler", "label": "[CLS]", "labelDy": 24 },
+    { "id": "l-heads", "from": "layer", "to": "heads", "label": "sequence 输出", "variant": "emphasis", "labelDy": 24 },
+    { "id": "heads-disc", "from": "heads", "to": "disc", "label": "ELECTRA 变体", "variant": "dashed", "labelDy": 24 }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "encoder 家族共性", "items": [
+      "双向（非因果）自注意力，完整可见序列",
+      "BERT/RoBERTa/DeBERTa/ELECTRA 共享堆叠+残差+LN 范式",
+      "差异在嵌入、注意力偏置与预训练任务头"
+    ]}
+  ]
+}

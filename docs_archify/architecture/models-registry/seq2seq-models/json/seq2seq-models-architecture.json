@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Encoder-Decoder 序列到序列模型（以 T5 为代表）",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1200, 700]
+  },
+  "components": [
+    { "id": "enc-emb", "type": "backend", "label": "输入嵌入", "sublabel": "encoder 侧", "pos": [60, 90], "size": [200, 56] },
+    { "id": "enc", "type": "backend", "label": "T5Encoder", "sublabel": "双向自注意力 ×N", "pos": [60, 240], "size": [200, 64], "tag": "相对位置偏置" },
+    { "id": "dec-emb", "type": "backend", "label": "目标嵌入", "sublabel": "decoder 侧", "pos": [560, 90], "size": [200, 56] },
+    { "id": "dec-self", "type": "backend", "label": "decoder 自注意力", "sublabel": "因果掩码", "pos": [560, 240], "size": [200, 60] },
+    { "id": "cross", "type": "backend", "label": "cross-attention", "sublabel": "关注 encoder 输出", "pos": [560, 380], "size": [200, 60] },
+    { "id": "dec-ff", "type": "backend", "label": "decoder FFN", "sublabel": "T5LayerFF", "pos": [560, 510], "size": [200, 56] },
+    { "id": "lmhead", "type": "database", "label": "LM head", "sublabel": "生成目标 token", "pos": [940, 380], "size": [200, 64], "tag": "encoder_outputs 传递" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "T5ForConditionalGeneration", "wraps": ["enc-emb", "enc", "dec-emb", "dec-self", "cross", "dec-ff", "lmhead"] }
+  ],
+  "connections": [
+    { "id": "ee-enc", "from": "enc-emb", "to": "enc", "label": "源序列", "variant": "emphasis", "labelDy": 24 },
+    { "id": "de-dec", "from": "dec-emb", "to": "dec-self", "label": "目标序列", "variant": "emphasis", "labelDy": 24 },
+    { "id": "self-cross", "from": "dec-self", "to": "cross", "label": "残差", "labelDy": 22 },
+    { "id": "cross-ff", "from": "cross", "to": "dec-ff", "label": "FFN", "labelDy": 22 },
+    { "id": "enc-cross", "from": "enc", "to": "cross", "label": "encoder_outputs", "variant": "emphasis", "labelDy": 24 },
+    { "id": "ff-lm", "from": "dec-ff", "to": "lmhead", "label": "logits", "variant": "emphasis", "labelDy": 24 }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "seq2seq 共性", "items": [
+      "encoder 双向读源序列，decoder 因果生成目标序列",
+      "cross-attention 把源信息注入 decoder",
+      "T5 用相对位置偏置；BART 用学习式位置嵌入"
+    ]}
+  ]
+}

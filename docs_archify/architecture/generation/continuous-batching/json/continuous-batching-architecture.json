@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "连续批处理引擎架构",
+    "quality_profile": "showcase",
+    "locale": "zh-CN"
+  },
+  "components": [
+    { "id": "api", "type": "frontend", "label": "generate_batch", "sublabel": "API 入口", "pos": [40, 280], "size": [120, 56] },
+    { "id": "mgr", "type": "backend", "label": "CBManager", "sublabel": "生命周期管理", "pos": [240, 280], "size": [120, 56] },
+    { "id": "proc", "type": "backend", "label": "CBProcessor", "sublabel": "主循环", "pos": [440, 280], "size": [130, 56], "tag": "核心" },
+    { "id": "sched", "type": "backend", "label": "Scheduler", "sublabel": "FIFO/PrefillFirst", "pos": [440, 120], "size": [130, 56] },
+    { "id": "runner", "type": "backend", "label": "ModelRunner", "sublabel": "前向+采样", "pos": [660, 280], "size": [120, 56] },
+    { "id": "cache", "type": "database", "label": "BlockManager", "sublabel": "paged KV Cache", "pos": [660, 120], "size": [130, 56] },
+    { "id": "offload", "type": "database", "label": "OffloadingMgr", "sublabel": "CPU 换入换出", "pos": [660, 440], "size": [130, 56] },
+    { "id": "model", "type": "external", "label": "模型", "sublabel": "外部前向", "pos": [880, 280], "size": [110, 56] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "连续批处理引擎（本叶子）", "wraps": ["api", "mgr", "proc", "sched", "runner", "cache", "offload"] },
+    { "kind": "security-group", "label": "外部", "wraps": ["model"] }
+  ],
+  "connections": [
+    { "id": "a-m", "from": "api", "to": "mgr", "fromSide": "right", "toSide": "left" },
+    { "id": "m-p", "from": "mgr", "to": "proc", "fromSide": "right", "toSide": "left" },
+    { "id": "p-s", "from": "proc", "to": "sched", "fromSide": "top", "toSide": "bottom" },
+    { "id": "p-r", "from": "proc", "to": "runner", "label": "compute_batch", "variant": "emphasis", "fromSide": "right", "toSide": "left" },
+    { "id": "r-model", "from": "runner", "to": "model", "fromSide": "right", "toSide": "left" },
+    { "id": "p-cache", "from": "proc", "to": "cache", "variant": "dashed", "fromSide": "top", "toSide": "bottom" },
+    { "id": "p-off", "from": "proc", "to": "offload", "variant": "dashed", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "主循环", "items": [
+      "prepare_next_batch → 调度",
+      "generation_step → 前向+采样",
+      "update_batch → 更新状态/交付"
+    ]},
+    { "dot": "cyan", "title": "Paged Attention", "items": [
+      "BlockManager 管理物理块",
+      "块级引用计数与共享",
+      "显存不足时 CPU 卸载"
+    ]}
+  ]
+}

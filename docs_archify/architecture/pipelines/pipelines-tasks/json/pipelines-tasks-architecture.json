@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "任务管线族分层架构",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "viewBox": [1280, 800]
+  },
+  "components": [
+    { "id": "base", "type": "backend", "label": "Pipeline 基类", "sublabel": "三步抽象框架", "pos": [480, 50], "size": [220, 70] },
+    { "id": "text-gen", "type": "backend", "label": "文本生成族", "sublabel": "TextGeneration", "pos": [40, 200], "size": [170, 70] },
+    { "id": "text-cls", "type": "backend", "label": "文本分类族", "sublabel": "Cls/NER/MLM", "pos": [250, 200], "size": [170, 70] },
+    { "id": "img", "type": "backend", "label": "图像族", "sublabel": "分类/检测/分割", "pos": [460, 200], "size": [170, 70] },
+    { "id": "audio", "type": "backend", "label": "音频族", "sublabel": "ASR/分类", "pos": [670, 200], "size": [170, 70] },
+    { "id": "mm", "type": "backend", "label": "多模态族", "sublabel": "图生文/文档QA", "pos": [880, 200], "size": [170, 70] },
+    { "id": "pre", "type": "frontend", "label": "preprocess", "sublabel": "分词/图像处理", "pos": [180, 430], "size": [180, 70] },
+    { "id": "fwd", "type": "backend", "label": "_forward", "sublabel": "model/generate", "pos": [550, 430], "size": [180, 70] },
+    { "id": "post", "type": "backend", "label": "postprocess", "sublabel": "softmax/BIO/解码", "pos": [920, 430], "size": [180, 70] },
+    { "id": "model", "type": "database", "label": "PreTrainedModel", "sublabel": "外部: PyTorch", "pos": [550, 620], "size": [180, 70] },
+    { "id": "tok", "type": "external", "label": "tokenizer/processor", "sublabel": "外部依赖", "pos": [180, 620], "size": [180, 70] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "任务管线实现层（24 个管线）", "wraps": ["text-gen", "text-cls", "img", "audio", "mm"] }
+  ],
+  "connections": [
+    { "id": "base-pre", "from": "base", "to": "pre" },
+    { "id": "pre-fwd", "from": "pre", "to": "fwd", "variant": "emphasis" },
+    { "id": "fwd-post", "from": "fwd", "to": "post", "variant": "emphasis" },
+    { "id": "fwd-model", "from": "fwd", "to": "model" },
+    { "id": "pre-tok", "from": "pre", "to": "tok" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "族级差异要点", "items": [
+      "生成族: _forward 调 generate()，postprocess decode",
+      "NER 族: ChunkPipeline + offset_mapping + BIO 合并",
+      "ASR 族: 音频按 chunk_length_s 切块 + 时间戳",
+      "图像族: image_processor 预处理 + softmax top_k"
+    ]}
+  ]
+}

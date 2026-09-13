@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Auto 注册表域结构（models/auto/）",
+    "quality_profile": "standard",
+    "locale": "zh-CN",
+    "viewBox": [1200, 820]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户代码", "sublabel": "from transformers import AutoModel", "pos": [60, 70], "size": [200, 64] },
+    { "id": "automodel", "type": "backend", "label": "AutoModel 系列", "sublabel": "modeling_auto.py 约40个类", "pos": [440, 70], "size": [220, 64] },
+    { "id": "factory", "type": "backend", "label": "_BaseAutoModelClass", "sublabel": "auto_factory.py 分发基类", "pos": [840, 70], "size": [240, 64], "tag": "from_pretrained/from_config" },
+    { "id": "autoconfig", "type": "backend", "label": "AutoConfig", "sublabel": "configuration_auto.py", "pos": [440, 250], "size": [220, 64] },
+    { "id": "lazymap", "type": "database", "label": "_LazyAutoMapping", "sublabel": "Config类->模型/分词器类", "pos": [840, 250], "size": [240, 64] },
+    { "id": "names", "type": "database", "label": "*_MAPPING_NAMES", "sublabel": "auto_mappings.py 字符串表(自动生成)", "pos": [440, 430], "size": [220, 64] },
+    { "id": "modelsdir", "type": "cloud", "label": "models/<family>/", "sublabel": "约516个模型家族包", "pos": [840, 430], "size": [240, 64], "tag": "按需 importlib 导入" },
+    { "id": "hub", "type": "external", "label": "HF Hub", "sublabel": "config.json/权重(不在本仓库源码内)", "pos": [440, 610], "size": [220, 64] },
+    { "id": "remote", "type": "security", "label": "trust_remote_code", "sublabel": "auto_map 动态注册", "pos": [840, 610], "size": [240, 64] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "models/auto/ 注册表", "wraps": ["automodel", "factory", "autoconfig", "lazymap", "names", "remote"] }
+  ],
+  "connections": [
+    { "id": "u-am", "from": "user", "to": "automodel", "label": "AutoModelForXxx.from_pretrained", "variant": "emphasis", "labelDy": 26 },
+    { "id": "am-f", "from": "automodel", "to": "factory", "label": "继承分发逻辑", "labelDy": 26 },
+    { "id": "am-ac", "from": "automodel", "to": "autoconfig", "label": "先读 config", "labelDy": 24 },
+    { "id": "ac-names", "from": "autoconfig", "to": "names", "label": "CONFIG_MAPPING_NAMES", "labelDy": 24 },
+    { "id": "names-lm", "from": "names", "to": "lazymap", "label": "MODEL_*_MAPPING_NAMES", "labelDy": 24 },
+    { "id": "f-lm", "from": "factory", "to": "lazymap", "label": "_get_model_class", "labelDy": 24 },
+    { "id": "lm-mod", "from": "lazymap", "to": "modelsdir", "label": "惰性 import", "variant": "emphasis", "labelDy": 24 },
+    { "id": "names-hub", "from": "names", "to": "hub", "label": "cached_file", "labelDy": 24 },
+    { "id": "mod-remote", "from": "modelsdir", "to": "remote", "label": "auto_map 命中时", "labelDy": 24 }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "设计要点", "items": [
+      "约516家族只存字符串名，首次访问才 import 对应包",
+      "model_type -> Config类 -> 任务头模型类 三方映射",
+      "remote code 经 auto_map 动态注册进 _extra_content"
+    ]}
+  ]
+}
